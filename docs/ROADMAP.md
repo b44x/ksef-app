@@ -4,10 +4,11 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 
 ## M1: Connect a company
 - [x] Skeleton (Laravel, Livewire, the SDK), CI
-- [ ] Companies with encrypted credentials; token store; KSeF gateway
-- [ ] Sign in; first-run setup of the administrator
-- [ ] Onboarding wizard: environment, NIP, token / certificate / signature made outside the app
-- [ ] Connection check (what `ksef-doctor` does), shown in the UI
+- [x] Companies with encrypted credentials; token store; KSeF gateway
+- [x] Sign in; first-run setup of the administrator
+- [x] Onboarding: environment, NIP, token or certificate (a signature made outside the app is stored as a choice; the signing screen is still to do)
+- [x] Connection check (what `ksef-doctor` does), shown in the UI
+- [ ] Signing screen for logins signed outside the app (trusted profile)
 
 ## M2: Issue invoices
 - [ ] Contractors, products, numbering series
