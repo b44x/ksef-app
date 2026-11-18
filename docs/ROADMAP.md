@@ -1,0 +1,37 @@
+# Roadmap
+
+Milestones are small enough to ship one by one. Each ends with something that works end to end on the KSeF TEST environment.
+
+## M1: Connect a company
+- [x] Skeleton (Laravel, Livewire, the SDK), CI
+- [ ] Companies with encrypted credentials; token store; KSeF gateway
+- [ ] Sign in; first-run setup of the administrator
+- [ ] Onboarding wizard: environment, NIP, token / certificate / signature made outside the app
+- [ ] Connection check (what `ksef-doctor` does), shown in the UI
+
+## M2: Issue invoices
+- [ ] Contractors, products, numbering series
+- [ ] Invoice form: VAT, corrections, advance and settlement invoices; totals as the SDK computes them
+- [ ] Send in the background, follow the status, keep the UPO and the KSeF number
+- [ ] Invoice view with the QR code; download the XML
+
+## M3: Receive invoices
+- [ ] Scheduled synchronisation of purchase invoices (incremental export)
+- [ ] List with search and filters; invoice view built on the SDK reader; download XML
+
+## M4: Stay safe
+- [ ] Availability banner; offline invoices with the delivery deadline and a reminder
+- [ ] Error handling in the UI: rejected invoices explained, retries without duplicates
+- [ ] Audit log; backup and restore
+
+## M5: PDF and polish
+- [ ] PDF of the invoice (a separate library), UPO as PDF
+- [ ] Polish and English interface
+- [ ] Import contractors and products from CSV
+
+## M6: Desktop
+- [ ] Spike: a packaged "hello world" with bundled PHP on Windows and macOS (CI builds, manual check)
+- [ ] Packaging, signing and notarisation, auto-update
+
+## Later
+Several companies per installation, accountant access, recurring invoices, payment matching, an API and webhooks.
