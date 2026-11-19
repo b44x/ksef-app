@@ -46,17 +46,15 @@ jobs:
           cp .env.example .env
           php artisan key:generate
       - run: php artisan native:install --force --no-interaction
-      - name: Show what the installer changed
+      - name: Keep the committed configuration
         shell: bash
-        run: |
-          git status --short
-          git diff -- composer.json config bootstrap | head -200
+        run: git checkout -- config/nativephp.php app/Providers/NativeAppServiceProvider.php composer.json
       - run: php artisan native:build ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
           name: ksef-app-${{ matrix.target }}
           path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.exe
-          if-no-files-found: warn
+            nativephp/electron/dist/*.dmg
+            nativephp/electron/dist/*.zip
+            nativephp/electron/dist/*.exe
+          if-no-files-found: error
