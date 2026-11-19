@@ -2,11 +2,13 @@
 
 ## Decisions
 
-**Laravel + Livewire, with the SDK used as it is.** The hard part of working with KSeF (encryption, XAdES, XSD,
+**Laravel + Inertia + React, with the SDK used as it is.** The hard part of working with KSeF (encryption, XAdES, XSD,
 corrections, offline, recovery after lost responses) lives in `b44x/ksef-php`. The app reuses it instead of porting it:
 a port to another language would be weeks of work and a second set of bugs. Laravel brings what an application like this
 needs without extra parts: users and sessions, queues, a scheduler, encryption of secrets, migrations, testing.
-The UI is server-rendered (Livewire), so there is one application to build, test and deploy.
+The UI is React (TypeScript, Tailwind) served by Inertia: pages are React components, but routing, validation, sessions
+and data stay in Laravel, so there is no separate API to build and version, and still one application to deploy. React was
+chosen for the invoice form (dynamic lines, autocomplete, live totals), which is where a server-rendered UI gets awkward.
 
 **Cross-platform by packaging, not by rewriting.** The same application runs in a browser (Docker, a server, a NAS) and,
 later, as a desktop app for Windows and macOS with the PHP runtime bundled (NativePHP). Desktop is a packaging concern
@@ -24,7 +26,8 @@ rewriting the data model.
 ## Layers
 
 ```
-Livewire components (UI)          app/Livewire
+React pages (UI)                  resources/js/Pages
+Controllers, form requests        app/Http
 Application services              app/Services      issuing, receiving, synchronising
 Ports and adapters                app/Ksef          KsefGateway, SdkKsefGateway, token store
 Domain / persistence              app/Models        Company, Invoice, Contractor, ...

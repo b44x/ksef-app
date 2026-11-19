@@ -3,7 +3,7 @@
 Milestones are small enough to ship one by one. Each ends with something that works end to end on the KSeF TEST environment.
 
 ## M1: Connect a company
-- [x] Skeleton (Laravel, Livewire, the SDK), CI
+- [x] Skeleton (Laravel, Inertia + React, the SDK), CI
 - [x] Companies with encrypted credentials; token store; KSeF gateway
 - [x] Sign in; first-run setup of the administrator
 - [x] Onboarding: environment, NIP, token or certificate (a signature made outside the app is stored as a choice; the signing screen is still to do)

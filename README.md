@@ -22,7 +22,7 @@ Designed for one company per installation, with the data model ready for many co
 
 ## Stack
 
-Laravel 13 and Livewire 4, PHP 8.3+, SQLite by default (PostgreSQL optional), the KSeF SDK used directly.
+Laravel 13, Inertia with React and TypeScript, Tailwind, PHP 8.3+, SQLite by default (PostgreSQL optional), the KSeF SDK used directly.
 Why this and not something else: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Try it

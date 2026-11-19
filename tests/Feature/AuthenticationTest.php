@@ -2,66 +2,59 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Login;
-use App\Livewire\Setup;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const PASSWORD = 'correct horse battery';
+
+    /** @return array<string, string> */
+    private function setupData(array $override = []): array
+    {
+        return $override + ['name' => 'Admin', 'email' => 'admin@example.test', 'password' => self::PASSWORD, 'password_confirmation' => self::PASSWORD];
+    }
+
     public function test_a_fresh_installation_leads_to_the_setup_and_the_setup_creates_the_administrator(): void
     {
         $this->get('/')->assertRedirect(route('login'));
-        Livewire::test(Login::class)->assertRedirect(route('setup'));
+        $this->get('/login')->assertRedirect(route('setup'));
+        $this->get('/setup')->assertInertia(fn (Assert $page) => $page->component('Setup'));
 
-        Livewire::test(Setup::class)
-            ->set('name', 'Admin')->set('email', 'admin@example.test')
-            ->set('password', 'correct horse battery')->set('password_confirmation', 'correct horse battery')
-            ->call('create')
-            ->assertRedirect(route('onboarding'));
+        $this->post('/setup', $this->setupData())->assertRedirect(route('company.edit'));
 
         $this->assertAuthenticated();
         $this->assertSame(1, User::count());
-        $this->assertNotSame('correct horse battery', User::first()->password, 'Passwords are hashed.');
+        $this->assertNotSame(self::PASSWORD, User::first()->password, 'Passwords are hashed.');
     }
 
     public function test_the_setup_is_closed_once_there_is_a_user_and_needs_a_strong_password(): void
     {
-        Livewire::test(Setup::class)
-            ->set('name', 'Admin')->set('email', 'admin@example.test')
-            ->set('password', 'short')->set('password_confirmation', 'short')
-            ->call('create')
-            ->assertHasErrors(['password']);
+        $this->post('/setup', $this->setupData(['password' => 'short', 'password_confirmation' => 'short']))->assertSessionHasErrors('password');
+        $this->assertSame(0, User::count());
 
-        // Someone else finished the setup while this form was open: it must not create a second administrator.
-        $form = Livewire::test(Setup::class);
+        // Someone else finished the setup first: a second administrator must not be created.
         User::factory()->create();
 
-        $form->set('name', 'Late')->set('email', 'late@example.test')
-            ->set('password', 'correct horse battery')->set('password_confirmation', 'correct horse battery')
-            ->call('create')->assertRedirect(route('login'));
+        $this->post('/setup', $this->setupData(['email' => 'late@example.test']))->assertRedirect(route('login'));
         $this->assertSame(1, User::count());
-        Livewire::test(Setup::class)->assertRedirect(route('login'));
+        $this->get('/setup')->assertRedirect(route('login'));
     }
 
     public function test_signing_in_and_out(): void
     {
         $user = User::factory()->create(['password' => 'a long enough password']);
 
-        Livewire::test(Login::class)
-            ->set('email', $user->email)->set('password', 'wrong')
-            ->call('authenticate')
-            ->assertHasErrors(['email']);
+        $this->get('/login')->assertInertia(fn (Assert $page) => $page->component('Login'));
+
+        $this->post('/login', ['email' => $user->email, 'password' => 'wrong'])->assertSessionHasErrors('email');
         $this->assertGuest();
 
-        Livewire::test(Login::class)
-            ->set('email', $user->email)->set('password', 'a long enough password')
-            ->call('authenticate')
-            ->assertRedirect(route('dashboard'));
+        $this->post('/login', ['email' => $user->email, 'password' => 'a long enough password'])->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
 
         $this->post('/logout')->assertRedirect(route('login'));
@@ -73,13 +66,10 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create(['password' => 'a long enough password']);
 
         for ($i = 0; $i < 5; $i++) {
-            Livewire::test(Login::class)->set('email', $user->email)->set('password', 'wrong')->call('authenticate');
+            $this->post('/login', ['email' => $user->email, 'password' => 'wrong']);
         }
 
-        Livewire::test(Login::class)
-            ->set('email', $user->email)->set('password', 'a long enough password')
-            ->call('authenticate')
-            ->assertHasErrors(['email']);
+        $this->post('/login', ['email' => $user->email, 'password' => 'a long enough password'])->assertSessionHasErrors('email');
         $this->assertGuest();
     }
 
@@ -89,5 +79,6 @@ class AuthenticationTest extends TestCase
 
         $this->get('/')->assertRedirect(route('login'));
         $this->get('/company')->assertRedirect(route('login'));
+        $this->post('/company/check')->assertRedirect(route('login'));
     }
 }

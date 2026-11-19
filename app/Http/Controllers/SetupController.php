@@ -1,41 +1,32 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
-use Livewire\Component;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /** First run: creates the administrator. Only available while there are no users. */
-#[Layout('layouts.app')]
-#[Title('Set up')]
-class Setup extends Component
+class SetupController extends Controller
 {
-    public string $name = '';
-
-    public string $email = '';
-
-    public string $password = '';
-
-    public string $password_confirmation = '';
-
-    public function mount(): mixed
+    public function show(): Response|RedirectResponse
     {
-        return User::query()->exists() ? $this->redirectRoute('login', navigate: false) : null;
+        return User::query()->exists() ? redirect()->route('login') : Inertia::render('Setup');
     }
 
-    public function create(): mixed
+    public function store(Request $request): RedirectResponse
     {
         // Checked again here: two people must not both become the first administrator.
         if (User::query()->exists()) {
-            return $this->redirectRoute('login');
+            return redirect()->route('login');
         }
 
-        $data = $this->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'confirmed', Password::min(12)],
@@ -43,13 +34,8 @@ class Setup extends Component
 
         $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => Hash::make($data['password'])]);
         Auth::login($user);
-        session()->regenerate();
+        $request->session()->regenerate();
 
-        return $this->redirectRoute('onboarding');
-    }
-
-    public function render()
-    {
-        return view('livewire.setup');
+        return redirect()->route('company.edit');
     }
 }
