@@ -11,9 +11,9 @@ enum AuthMethod: string
     public function label(): string
     {
         return match ($this) {
-            self::Token => 'KSeF token',
-            self::Certificate => 'Certificate and private key (PEM)',
-            self::Manual => 'Signature made outside the app (trusted profile)',
+            self::Token => __('KSeF token'),
+            self::Certificate => __('Certificate and private key (PEM)'),
+            self::Manual => __('Signature made outside the app (trusted profile)'),
         };
     }
 }

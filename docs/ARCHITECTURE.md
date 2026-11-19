@@ -34,6 +34,14 @@ Domain / persistence              app/Models        Company, Invoice, Contractor
 Queue and scheduler               app/Jobs          send, poll status, synchronise
 ```
 
+## Languages
+
+The interface is multilingual (English and Polish now). Texts are keyed by their English wording: PHP uses `__('...')`,
+React uses `t('...')` (`resources/js/i18n.ts`), and both read `lang/<code>.json`. The language is the one the user picked
+(kept in the session), else the browser's, else `APP_LOCALE`. A test fails when a text used in the frontend has no Polish
+translation. To add a language: add it to `config/locales.php`, add `lang/<code>.json` and `lang/<code>/validation.php`.
+Texts that come from the SDK's connection check (the messages, not the names) are in English for now.
+
 ## Secrets
 
 KSeF tokens, certificates and private keys are stored encrypted (`Crypt`, `APP_KEY`), are never logged or shown again, and

@@ -35,7 +35,7 @@ class CompanyRequest extends FormRequest
                 try {
                     Nip::of((string) $value);
                 } catch (ValidationException) {
-                    $fail('This is not a valid NIP (check the digits).');
+                    $fail(__('This is not a valid NIP (check the digits).'));
                 }
             }, Rule::unique('companies', 'nip')->ignore($company?->id)],
             'environment' => ['required', Rule::enum(KsefEnvironment::class)],

@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import type { Outcome, Report } from '../types';
 
 const style: Record<Outcome, { label: string; classes: string }> = {
@@ -8,19 +9,21 @@ const style: Record<Outcome, { label: string; classes: string }> = {
 };
 
 export default function ConnectionReport({ report }: { report: Report }) {
+    const t = useT();
+
     return (
         <div className="space-y-2" data-testid="report">
             <p className={`text-sm font-medium ${report.ok ? 'text-green-700' : 'text-red-700'}`}>
-                {report.ok ? 'The connection works.' : 'The connection has problems.'}
+                {report.ok ? t('The connection works.') : t('The connection has problems.')}
             </p>
             <ul className="divide-y divide-slate-100 rounded-md border border-slate-200">
                 {report.checks.map((check) => (
                     <li key={check.name} className="p-3 text-sm">
                         <div className="flex items-center gap-2">
                             <span className={`rounded px-2 py-0.5 text-xs font-medium ${style[check.outcome].classes}`}>
-                                {style[check.outcome].label}
+                                {t(style[check.outcome].label)}
                             </span>
-                            <span className="font-medium">{check.name}</span>
+                            <span className="font-medium">{t(check.name)}</span>
                             <span className="text-slate-600">{check.message}</span>
                         </div>
                         {check.details.length > 0 && (

@@ -24,7 +24,7 @@ class SdkKsefGateway implements KsefGateway
         try {
             $client = $this->clients->make($company);
         } catch (Throwable $e) {
-            return new ConnectionReport([new ConnectionCheck('Settings', CheckOutcome::Failed, $e->getMessage())]);
+            return new ConnectionReport([new ConnectionCheck(__('Settings'), CheckOutcome::Failed, $e->getMessage())]);
         }
 
         $certificate = $company->credential('certificate');

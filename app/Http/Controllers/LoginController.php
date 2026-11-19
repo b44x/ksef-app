@@ -25,12 +25,12 @@ class LoginController extends Controller
 
         $key = Str::lower($data['email']).'|'.$request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
-            throw ValidationException::withMessages(['email' => 'Too many attempts. Try again in '.RateLimiter::availableIn($key).' seconds.']);
+            throw ValidationException::withMessages(['email' => __('Too many attempts. Try again in :seconds seconds.', ['seconds' => RateLimiter::availableIn($key)])]);
         }
 
         if (! Auth::attempt($data, $request->boolean('remember'))) {
             RateLimiter::hit($key);
-            throw ValidationException::withMessages(['email' => 'These credentials do not match.']);
+            throw ValidationException::withMessages(['email' => __('These credentials do not match.')]);
         }
 
         RateLimiter::clear($key);

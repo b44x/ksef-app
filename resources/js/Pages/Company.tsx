@@ -1,4 +1,5 @@
 import { useForm, usePage } from '@inertiajs/react';
+import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
 import { Button, Card, Field, Input, Select, Textarea } from '../Components/Ui';
 import ConnectionReport from '../Components/ConnectionReport';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function Company({ company, environments, methods }: Props) {
+    const t = useT();
     const { report } = usePage<SharedProps>().props;
     const form = useForm({
         name: company?.name ?? '',
@@ -28,12 +30,12 @@ export default function Company({ company, environments, methods }: Props) {
         passphrase: '',
     });
     const saved = company?.has_secrets && company.auth_method === form.data.auth_method;
-    const hint = saved ? 'Saved. Leave blank to keep it.' : undefined;
+    const hint = saved ? t('Saved. Leave blank to keep it.') : undefined;
     const secrets = ['token', 'certificate', 'private_key', 'passphrase'] as const;
 
     return (
         <AppLayout>
-            <Card title="Your company">
+            <Card title={t('Your company')}>
                 <form
                     className="space-y-4"
                     onSubmit={(e) => {
@@ -42,13 +44,13 @@ export default function Company({ company, environments, methods }: Props) {
                         form.put('/company', { onFinish: () => form.reset(...secrets) });
                     }}
                 >
-                    <Field label="Company name" error={form.errors.name}>
+                    <Field label={t('Company name')} error={form.errors.name}>
                         <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                     </Field>
-                    <Field label="NIP" error={form.errors.nip}>
+                    <Field label={t('NIP')} error={form.errors.nip}>
                         <Input value={form.data.nip} onChange={(e) => form.setData('nip', e.target.value)} />
                     </Field>
-                    <Field label="KSeF environment" error={form.errors.environment}>
+                    <Field label={t('KSeF environment')} error={form.errors.environment}>
                         <Select
                             value={form.data.environment}
                             onChange={(e) => form.setData('environment', e.target.value)}
@@ -60,7 +62,7 @@ export default function Company({ company, environments, methods }: Props) {
                             ))}
                         </Select>
                     </Field>
-                    <Field label="How to log in" error={form.errors.auth_method}>
+                    <Field label={t('How to log in')} error={form.errors.auth_method}>
                         <Select
                             value={form.data.auth_method}
                             onChange={(e) => form.setData('auth_method', e.target.value)}
@@ -74,7 +76,7 @@ export default function Company({ company, environments, methods }: Props) {
                     </Field>
 
                     {form.data.auth_method === 'token' && (
-                        <Field label="KSeF token" error={form.errors.token} hint={hint}>
+                        <Field label={t('KSeF token')} error={form.errors.token} hint={hint}>
                             <Input
                                 type="password"
                                 autoComplete="off"
@@ -85,19 +87,19 @@ export default function Company({ company, environments, methods }: Props) {
                     )}
                     {form.data.auth_method === 'certificate' && (
                         <>
-                            <Field label="Certificate (PEM)" error={form.errors.certificate} hint={hint}>
+                            <Field label={t('Certificate (PEM)')} error={form.errors.certificate} hint={hint}>
                                 <Textarea
                                     value={form.data.certificate}
                                     onChange={(e) => form.setData('certificate', e.target.value)}
                                 />
                             </Field>
-                            <Field label="Private key (PEM)" error={form.errors.private_key} hint={hint}>
+                            <Field label={t('Private key (PEM)')} error={form.errors.private_key} hint={hint}>
                                 <Textarea
                                     value={form.data.private_key}
                                     onChange={(e) => form.setData('private_key', e.target.value)}
                                 />
                             </Field>
-                            <Field label="Key passphrase (if any)" error={form.errors.passphrase}>
+                            <Field label={t('Key passphrase (if any)')} error={form.errors.passphrase}>
                                 <Input
                                     type="password"
                                     autoComplete="off"
@@ -109,17 +111,17 @@ export default function Company({ company, environments, methods }: Props) {
                     )}
                     {form.data.auth_method === 'manual' && (
                         <p className="text-sm text-slate-600">
-                            Nothing is stored. You will sign each login request yourself.
+                            {t('Nothing is stored. You will sign each login request yourself.')}
                         </p>
                     )}
 
                     <Button type="submit" disabled={form.processing}>
-                        Save and check the connection
+                        {t('Save and check the connection')}
                     </Button>
                 </form>
             </Card>
             {report && (
-                <Card title="Connection check">
+                <Card title={t('Connection check')}>
                     <ConnectionReport report={report} />
                 </Card>
             )}

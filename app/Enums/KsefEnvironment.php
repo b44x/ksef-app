@@ -22,9 +22,9 @@ enum KsefEnvironment: string
     public function label(): string
     {
         return match ($this) {
-            self::Test => 'TEST (no real data)',
-            self::Demo => 'DEMO (pre-production)',
-            self::Production => 'Production (real invoices)',
+            self::Test => __('TEST (no real data)'),
+            self::Demo => __('DEMO (pre-production)'),
+            self::Production => __('Production (real invoices)'),
         };
     }
 }

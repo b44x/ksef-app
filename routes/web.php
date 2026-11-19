@@ -3,9 +3,12 @@
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ConnectionCheckController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/locale', [LocaleController::class, 'update'])->name('locale');
 
 Route::middleware('guest')->group(function () {
     Route::get('/setup', [SetupController::class, 'show'])->name('setup');

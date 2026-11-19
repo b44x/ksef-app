@@ -1,4 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
+import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
 import { Button, Card } from '../Components/Ui';
 import ConnectionReport from '../Components/ConnectionReport';
@@ -9,25 +10,26 @@ interface Props {
 }
 
 export default function Dashboard({ details }: Props) {
+    const t = useT();
     const { report } = usePage<SharedProps>().props;
 
     return (
         <AppLayout>
             <Card title={details.name}>
                 <dl className="grid grid-cols-2 gap-2 text-sm">
-                    <dt className="text-slate-500">NIP</dt>
+                    <dt className="text-slate-500">{t('NIP')}</dt>
                     <dd>{details.nip}</dd>
-                    <dt className="text-slate-500">Environment</dt>
+                    <dt className="text-slate-500">{t('Environment')}</dt>
                     <dd>{details.environment}</dd>
-                    <dt className="text-slate-500">Login method</dt>
+                    <dt className="text-slate-500">{t('Login method')}</dt>
                     <dd>{details.auth_method}</dd>
                 </dl>
                 <div className="mt-4">
-                    <Button onClick={() => router.post('/company/check')}>Check the connection</Button>
+                    <Button onClick={() => router.post('/company/check')}>{t('Check the connection')}</Button>
                 </div>
             </Card>
             {report && (
-                <Card title="Connection check">
+                <Card title={t('Connection check')}>
                     <ConnectionReport report={report} />
                 </Card>
             )}
