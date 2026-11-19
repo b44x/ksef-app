@@ -27,11 +27,12 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 
 ## M5: PDF and polish
 - [ ] PDF of the invoice (a separate library), UPO as PDF
-- [ ] Polish and English interface
+- [x] Polish and English interface (more languages: add a JSON file)
 - [ ] Import contractors and products from CSV
 
 ## M6: Desktop
-- [ ] Spike: a packaged "hello world" with bundled PHP on Windows and macOS (CI builds, manual check)
+- [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)
+- [ ] Manual check that the installers start and work on real Windows and macOS machines
 - [ ] Packaging, signing and notarisation, auto-update
 
 ## Later
