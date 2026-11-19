@@ -14,6 +14,7 @@ class CompanyTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** @param array<string, mixed> $overrides */
     private function company(array $overrides = []): Company
     {
         return Company::create($overrides + [

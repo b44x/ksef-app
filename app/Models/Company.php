@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * The company invoices are issued for and received by. Every business record belongs to one; an installation shows a
  * single company for now, but nothing in the data model assumes that.
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $nip
+ * @property KsefEnvironment $environment
+ * @property AuthMethod $auth_method
+ * @property array<string, string>|null $credentials
  */
 #[Fillable(['name', 'nip', 'environment', 'auth_method', 'credentials'])]
 #[Hidden(['credentials'])]

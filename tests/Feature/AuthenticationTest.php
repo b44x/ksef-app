@@ -13,7 +13,10 @@ class AuthenticationTest extends TestCase
 
     private const PASSWORD = 'correct horse battery';
 
-    /** @return array<string, string> */
+    /**
+     * @param  array<string, string>  $override
+     * @return array<string, string>
+     */
     private function setupData(array $override = []): array
     {
         return $override + ['name' => 'Admin', 'email' => 'admin@example.test', 'password' => self::PASSWORD, 'password_confirmation' => self::PASSWORD];

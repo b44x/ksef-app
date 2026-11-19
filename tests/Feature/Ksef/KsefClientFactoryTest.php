@@ -18,6 +18,7 @@ class KsefClientFactoryTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** @param array<string, string>|null $credentials */
     private function company(AuthMethod $method, ?array $credentials, string $nip = '5265877635'): Company
     {
         return Company::create(['name' => 'Example', 'nip' => $nip, 'environment' => KsefEnvironment::Test, 'auth_method' => $method, 'credentials' => $credentials]);

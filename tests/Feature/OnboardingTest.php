@@ -23,7 +23,10 @@ class OnboardingTest extends TestCase
         $this->actingAs(User::factory()->create());
     }
 
-    /** @return array<string, string> */
+    /**
+     * @param  array<string, string>  $override
+     * @return array<string, string>
+     */
     private function form(array $override = []): array
     {
         return $override + [

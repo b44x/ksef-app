@@ -49,15 +49,15 @@ final class SaveCompany
             return $company->credentials;
         }
 
-        return match ($method) {
-            AuthMethod::Token => ['token' => $token],
-            AuthMethod::Certificate => array_filter([
-                'certificate' => $certificate,
-                'private_key' => $privateKey,
-                'passphrase' => (string) ($data['passphrase'] ?? ''),
-            ], static fn (string $v): bool => $v !== ''),
-            default => null,
-        };
+        if ($method === AuthMethod::Token) {
+            return ['token' => $token];
+        }
+
+        return array_filter([
+            'certificate' => $certificate,
+            'private_key' => $privateKey,
+            'passphrase' => (string) ($data['passphrase'] ?? ''),
+        ], static fn (string $v): bool => $v !== '');
     }
 
     /** True when the company already has this kind of credentials stored, so blank secret fields are fine. */
