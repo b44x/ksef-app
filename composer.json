@@ -13,7 +13,8 @@
         "b44x/ksef-php": "^0.12",
         "inertiajs/inertia-laravel": "*",
         "laravel/framework": "^13.17",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "nativephp/desktop": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

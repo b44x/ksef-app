@@ -1,0 +1,62 @@
+name: Desktop build
+
+# Builds the desktop app (NativePHP + Electron) for macOS and Windows. Unsigned for now: this proves the app packages and
+# starts. Runs by hand, and on the branch used for desktop experiments.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - spike/desktop
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macOS (Apple Silicon), os: macos-latest, target: mac }
+          - { name: Windows, os: windows-latest, target: win }
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: npm ci
+      - name: Prepare the environment
+        shell: bash
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+      - run: php artisan native:install --force --no-interaction
+      - name: Show what the installer changed
+        shell: bash
+        run: |
+          git status --short
+          git diff -- composer.json config bootstrap | head -200
+      - run: php artisan native:build ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ksef-app-${{ matrix.target }}
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
+          if-no-files-found: warn
