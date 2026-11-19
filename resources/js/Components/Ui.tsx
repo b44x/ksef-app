@@ -9,7 +9,17 @@ export function Card({ title, children }: { title?: string; children: ReactNode 
     );
 }
 
-export function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: ReactNode }) {
+export function Field({
+    label,
+    error,
+    hint,
+    children,
+}: {
+    label: string;
+    error?: string;
+    hint?: string;
+    children: ReactNode;
+}) {
     return (
         <label className="block">
             <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
@@ -20,7 +30,8 @@ export function Field({ label, error, hint, children }: { label: string; error?:
     );
 }
 
-const control = 'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500';
+const control =
+    'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500';
 
 export const Input = (props: InputHTMLAttributes<HTMLInputElement>) => <input {...props} className={control} />;
 export const Select = (props: SelectHTMLAttributes<HTMLSelectElement>) => <select {...props} className={control} />;

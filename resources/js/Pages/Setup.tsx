@@ -9,7 +9,9 @@ export default function Setup() {
         <AppLayout>
             <div className="mx-auto max-w-md">
                 <Card title="Create the administrator">
-                    <p className="mb-4 text-sm text-slate-600">This is the first start. Create the account that manages the invoices.</p>
+                    <p className="mb-4 text-sm text-slate-600">
+                        This is the first start. Create the account that manages the invoices.
+                    </p>
                     <form
                         className="space-y-4"
                         onSubmit={(e) => {
@@ -21,10 +23,18 @@ export default function Setup() {
                             <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                         </Field>
                         <Field label="Email" error={form.errors.email}>
-                            <Input type="email" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} />
+                            <Input
+                                type="email"
+                                value={form.data.email}
+                                onChange={(e) => form.setData('email', e.target.value)}
+                            />
                         </Field>
                         <Field label="Password" error={form.errors.password} hint="At least 12 characters.">
-                            <Input type="password" value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} />
+                            <Input
+                                type="password"
+                                value={form.data.password}
+                                onChange={(e) => form.setData('password', e.target.value)}
+                            />
                         </Field>
                         <Field label="Repeat the password">
                             <Input

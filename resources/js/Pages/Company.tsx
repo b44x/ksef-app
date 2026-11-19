@@ -49,7 +49,10 @@ export default function Company({ company, environments, methods }: Props) {
                         <Input value={form.data.nip} onChange={(e) => form.setData('nip', e.target.value)} />
                     </Field>
                     <Field label="KSeF environment" error={form.errors.environment}>
-                        <Select value={form.data.environment} onChange={(e) => form.setData('environment', e.target.value)}>
+                        <Select
+                            value={form.data.environment}
+                            onChange={(e) => form.setData('environment', e.target.value)}
+                        >
                             {environments.map((o) => (
                                 <option key={o.value} value={o.value}>
                                     {o.label}
@@ -58,7 +61,10 @@ export default function Company({ company, environments, methods }: Props) {
                         </Select>
                     </Field>
                     <Field label="How to log in" error={form.errors.auth_method}>
-                        <Select value={form.data.auth_method} onChange={(e) => form.setData('auth_method', e.target.value)}>
+                        <Select
+                            value={form.data.auth_method}
+                            onChange={(e) => form.setData('auth_method', e.target.value)}
+                        >
                             {methods.map((o) => (
                                 <option key={o.value} value={o.value}>
                                     {o.label}
@@ -69,24 +75,42 @@ export default function Company({ company, environments, methods }: Props) {
 
                     {form.data.auth_method === 'token' && (
                         <Field label="KSeF token" error={form.errors.token} hint={hint}>
-                            <Input type="password" autoComplete="off" value={form.data.token} onChange={(e) => form.setData('token', e.target.value)} />
+                            <Input
+                                type="password"
+                                autoComplete="off"
+                                value={form.data.token}
+                                onChange={(e) => form.setData('token', e.target.value)}
+                            />
                         </Field>
                     )}
                     {form.data.auth_method === 'certificate' && (
                         <>
                             <Field label="Certificate (PEM)" error={form.errors.certificate} hint={hint}>
-                                <Textarea value={form.data.certificate} onChange={(e) => form.setData('certificate', e.target.value)} />
+                                <Textarea
+                                    value={form.data.certificate}
+                                    onChange={(e) => form.setData('certificate', e.target.value)}
+                                />
                             </Field>
                             <Field label="Private key (PEM)" error={form.errors.private_key} hint={hint}>
-                                <Textarea value={form.data.private_key} onChange={(e) => form.setData('private_key', e.target.value)} />
+                                <Textarea
+                                    value={form.data.private_key}
+                                    onChange={(e) => form.setData('private_key', e.target.value)}
+                                />
                             </Field>
                             <Field label="Key passphrase (if any)" error={form.errors.passphrase}>
-                                <Input type="password" autoComplete="off" value={form.data.passphrase} onChange={(e) => form.setData('passphrase', e.target.value)} />
+                                <Input
+                                    type="password"
+                                    autoComplete="off"
+                                    value={form.data.passphrase}
+                                    onChange={(e) => form.setData('passphrase', e.target.value)}
+                                />
                             </Field>
                         </>
                     )}
                     {form.data.auth_method === 'manual' && (
-                        <p className="text-sm text-slate-600">Nothing is stored. You will sign each login request yourself.</p>
+                        <p className="text-sm text-slate-600">
+                            Nothing is stored. You will sign each login request yourself.
+                        </p>
                     )}
 
                     <Button type="submit" disabled={form.processing}>
