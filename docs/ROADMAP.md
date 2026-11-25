@@ -11,7 +11,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [ ] Signing screen for logins signed outside the app (trusted profile)
 
 ## M2: Issue invoices
-- [ ] Contractors, products, numbering series
+- [x] Contractors
+- [ ] Products, numbering series
 - [ ] Invoice form: VAT, corrections, advance and settlement invoices; totals as the SDK computes them
 - [ ] Send in the background, follow the status, keep the UPO and the KSeF number
 - [ ] Invoice view with the QR code; download the XML

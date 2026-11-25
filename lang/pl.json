@@ -50,5 +50,18 @@
     "Production (real invoices)": "Produkcja (prawdziwe faktury)",
     "Too many attempts. Try again in :seconds seconds.": "Zbyt wiele prób. Spróbuj ponownie za :seconds s.",
     "These credentials do not match.": "Nieprawidłowy e-mail lub hasło.",
-    "This is not a valid NIP (check the digits).": "To nie jest prawidłowy NIP (sprawdź cyfry)."
+    "This is not a valid NIP (check the digits).": "To nie jest prawidłowy NIP (sprawdź cyfry).",
+    "Contractors": "Kontrahenci",
+    "No contractors yet.": "Brak kontrahentów.",
+    "Address": "Adres",
+    "Edit": "Edytuj",
+    "Delete": "Usuń",
+    "Delete :name?": "Usunąć :name?",
+    "Add a contractor": "Dodaj kontrahenta",
+    "Edit the contractor": "Edytuj kontrahenta",
+    "Leave empty for foreign buyers and consumers.": "Zostaw puste dla nabywców zagranicznych i osób prywatnych.",
+    "Country (two letters)": "Kraj (dwie litery)",
+    "Address, second line": "Adres, druga linia",
+    "Save": "Zapisz",
+    "Cancel": "Anuluj"
 }

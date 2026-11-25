@@ -44,6 +44,20 @@ class Company extends Model
         return $this->hasMany(KsefToken::class);
     }
 
+    /** The company this installation works for (one for now; several later). */
+    public static function current(): ?self
+    {
+        return self::query()->first();
+    }
+
+    /**
+     * @return HasMany<Contractor, $this>
+     */
+    public function contractors(): HasMany
+    {
+        return $this->hasMany(Contractor::class);
+    }
+
     /** A stored credential value (for example "token", "certificate", "private_key"), or null. */
     public function credential(string $key): ?string
     {

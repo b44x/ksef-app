@@ -30,6 +30,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                         {auth.user && (
                             <nav className="flex items-center gap-4 text-sm">
                                 {company && <span className="text-slate-500">{company.name}</span>}
+                                <Link href="/contractors" className="text-indigo-700 hover:underline">
+                                    {t('Contractors')}
+                                </Link>
                                 <Link href="/company" className="text-indigo-700 hover:underline">
                                     {t('Company')}
                                 </Link>
