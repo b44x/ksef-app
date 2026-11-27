@@ -130,6 +130,12 @@ class InvoiceController extends Controller
                 'problems' => app(InvoiceCheck::class)->problems($invoice),
                 'preview_number' => $invoice->series->preview($invoice->issue_date),
             ],
+            'seller' => [
+                'name' => $company->name,
+                'nip' => $company->nip,
+                'address' => trim($company->address_line1.', '.$company->address_line2, ', '),
+                'email' => $company->email,
+            ],
             'today' => now()->toDateString(),
             'defaultSeriesId' => $company->numberingSeries()->where('is_default', true)->value('id'),
             'contractors' => $company->contractors()->orderBy('name')->get(['id', 'name', 'nip', 'address_line1', 'address_line2', 'country']),

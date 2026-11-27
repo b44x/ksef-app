@@ -105,6 +105,7 @@ class InvoiceDraftTest extends TestCase
             ->assertJsonPath('vat', '347.00')
             ->assertJsonPath('gross', '1886.98')
             ->assertJsonPath('buckets.0.rate', '23')
+            ->assertJsonPath('buckets.0.gross', '1845.00')
             ->assertJsonPath('lines', ['1500.00', '39.98']);
 
         $this->postJson('/invoices/preview', ['lines' => [['name' => 'x', 'quantity' => '0', 'unit_net_price' => '1', 'vat_rate' => '23']]])->assertUnprocessable();

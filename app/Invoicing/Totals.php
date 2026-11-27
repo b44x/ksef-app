@@ -5,13 +5,14 @@ namespace App\Invoicing;
 use B4x\Ksef\Invoice\InvoiceLine as SdkLine;
 use B4x\Ksef\Invoice\InvoiceTotals;
 use B4x\Ksef\Invoice\VatRate;
+use B4x\Ksef\Support\Decimal;
 
 /** The sums of an invoice as the SDK computes them (tax per rate on the summed net, rounded to the grosz). */
 final class Totals
 {
     /**
      * @param  list<array{name: string, quantity: string, unit_net_price: string, vat_rate: string}>  $lines
-     * @return array{buckets: list<array{rate: string, net: string, vat: string|null}>, net: string, vat: string, gross: string, lines: list<string>}
+     * @return array{buckets: list<array{rate: string, net: string, vat: string|null, gross: string}>, net: string, vat: string, gross: string, lines: list<string>}
      */
     public static function of(array $lines, string $currency = 'PLN'): array
     {
@@ -27,6 +28,7 @@ final class Totals
                 'rate' => $b->rate->value,
                 'net' => $b->net->toString(2),
                 'vat' => $b->vat?->toString(2),
+                'gross' => $b->net->add($b->vat ?? Decimal::of('0.00'))->toString(2),
             ], $totals->buckets),
             'net' => $totals->net()->toString(2),
             'vat' => $totals->vat()->toString(2),
