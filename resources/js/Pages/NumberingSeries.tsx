@@ -59,7 +59,7 @@ export default function NumberingSeries({ series, resets }: { series: Series[]; 
                 {series.length === 0 ? (
                     <p className="text-sm text-slate-600">{t('No numbering series yet.')}</p>
                 ) : (
-                    <table className="w-full text-left text-sm">
+                    <table className="w-full text-left text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0">
                         <thead className="text-slate-500">
                             <tr>
                                 <th className="py-1">{t('Name')}</th>

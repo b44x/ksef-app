@@ -11,7 +11,16 @@ interface Option {
 }
 
 interface Props {
-    company: { name: string; nip: string; environment: string; auth_method: string; has_secrets: boolean } | null;
+    company: {
+        name: string;
+        nip: string;
+        address_line1: string;
+        address_line2: string;
+        email: string;
+        environment: string;
+        auth_method: string;
+        has_secrets: boolean;
+    } | null;
     environments: Option[];
     methods: Option[];
 }
@@ -22,6 +31,9 @@ export default function Company({ company, environments, methods }: Props) {
     const form = useForm({
         name: company?.name ?? '',
         nip: company?.nip ?? '',
+        address_line1: company?.address_line1 ?? '',
+        address_line2: company?.address_line2 ?? '',
+        email: company?.email ?? '',
         environment: company?.environment ?? 'test',
         auth_method: company?.auth_method ?? 'token',
         token: '',
@@ -49,6 +61,33 @@ export default function Company({ company, environments, methods }: Props) {
                     </Field>
                     <Field label={t('NIP')} error={form.errors.nip}>
                         <Input value={form.data.nip} onChange={(e) => form.setData('nip', e.target.value)} />
+                    </Field>
+                    <Field
+                        label={t('Address')}
+                        error={form.errors.address_line1}
+                        hint={t('The seller address printed on every invoice.')}
+                    >
+                        <Input
+                            value={form.data.address_line1}
+                            onChange={(e) => form.setData('address_line1', e.target.value)}
+                        />
+                    </Field>
+                    <Field
+                        label={t('Address, second line')}
+                        error={form.errors.address_line2}
+                        hint={t('Postal code and city.')}
+                    >
+                        <Input
+                            value={form.data.address_line2}
+                            onChange={(e) => form.setData('address_line2', e.target.value)}
+                        />
+                    </Field>
+                    <Field label={t('Email')} error={form.errors.email}>
+                        <Input
+                            type="email"
+                            value={form.data.email}
+                            onChange={(e) => form.setData('email', e.target.value)}
+                        />
                     </Field>
                     <Field label={t('KSeF environment')} error={form.errors.environment}>
                         <Select

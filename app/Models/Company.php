@@ -16,11 +16,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property string $name
  * @property string $nip
+ * @property string|null $address_line1
+ * @property string|null $address_line2
+ * @property string|null $email
  * @property KsefEnvironment $environment
  * @property AuthMethod $auth_method
  * @property array<string, string>|null $credentials
  */
-#[Fillable(['name', 'nip', 'environment', 'auth_method', 'credentials'])]
+#[Fillable(['name', 'nip', 'address_line1', 'address_line2', 'email', 'environment', 'auth_method', 'credentials'])]
 #[Hidden(['credentials'])]
 class Company extends Model
 {
@@ -72,6 +75,14 @@ class Company extends Model
     public function numberingSeries(): HasMany
     {
         return $this->hasMany(NumberingSeries::class);
+    }
+
+    /**
+     * @return HasMany<Invoice, $this>
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
     /** A stored credential value (for example "token", "certificate", "private_key"), or null. */

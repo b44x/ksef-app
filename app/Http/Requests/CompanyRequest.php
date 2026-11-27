@@ -38,6 +38,9 @@ class CompanyRequest extends FormRequest
                     $fail(__('This is not a valid NIP (check the digits).'));
                 }
             }, Rule::unique('companies', 'nip')->ignore($company?->id)],
+            'address_line1' => ['required', 'string', 'max:255'],
+            'address_line2' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'environment' => ['required', Rule::enum(KsefEnvironment::class)],
             'auth_method' => ['required', Rule::enum(AuthMethod::class)],
             'token' => [Rule::requiredIf($needs(AuthMethod::Token)), 'nullable', 'string', 'max:4096'],

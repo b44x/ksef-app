@@ -30,7 +30,7 @@ class OnboardingTest extends TestCase
     private function form(array $override = []): array
     {
         return $override + [
-            'name' => 'Example sp. z o.o.', 'nip' => '5265877635', 'environment' => 'test',
+            'name' => 'Example sp. z o.o.', 'nip' => '5265877635', 'address_line1' => 'ul. Prosta 1', 'address_line2' => '00-001 Warszawa', 'environment' => 'test',
             'auth_method' => 'token', 'token' => 'secret-ksef-token',
         ];
     }
@@ -75,6 +75,8 @@ class OnboardingTest extends TestCase
     public function test_invalid_input_is_refused_and_nothing_is_saved(): void
     {
         $this->app->instance(KsefGateway::class, new FakeGateway);
+
+        $this->put('/company', $this->form(['address_line1' => '']))->assertSessionHasErrors('address_line1');
 
         $this->put('/company', $this->form(['nip' => '1234567890']))->assertSessionHasErrors('nip');
         $this->put('/company', $this->form(['nip' => '12345']))->assertSessionHasErrors('nip');

@@ -23,6 +23,9 @@ class CompanyController extends Controller
             'company' => $company === null ? null : [
                 'name' => $company->name,
                 'nip' => $company->nip,
+                'address_line1' => $company->address_line1 ?? '',
+                'address_line2' => $company->address_line2 ?? '',
+                'email' => $company->email ?? '',
                 'environment' => $company->environment->value,
                 'auth_method' => $company->auth_method->value,
                 'has_secrets' => $company->credentials !== null,

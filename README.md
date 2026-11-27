@@ -8,6 +8,19 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 
 > **Status: early development.** Nothing here is ready for production use yet. See the [roadmap](docs/ROADMAP.md).
 
+## Screenshots
+
+The invoice draft, with the totals computed by the SDK as you type (English and Polish):
+
+![Invoice draft](docs/screenshots/08-invoice-draft.png)
+![Szkic faktury](docs/screenshots/09-invoice-draft-pl.png)
+
+| Invoices | Contractors |
+| --- | --- |
+| ![Invoices](docs/screenshots/07-invoices.png) | ![Kontrahenci](docs/screenshots/10-contractors-pl.png) |
+| **Products** | **Numbering series** |
+| ![Products](docs/screenshots/05-products.png) | ![Numbering](docs/screenshots/06-numbering.png) |
+
 ## What it will do
 
 - **Connect** a company to KSeF with a token, a certificate or a signature made outside the app (trusted profile),
@@ -28,10 +41,17 @@ Why this and not something else: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ## Try it
 
 ```bash
-composer install
+composer install && npm ci
 cp .env.example .env && php artisan key:generate
 php artisan migrate
+npm run build
 php artisan serve        # http://localhost:8000
+```
+
+To look around with example data (local use only; the login is `demo@example.test` / `demo-password-123`):
+
+```bash
+php artisan db:seed --class=DemoSeeder
 ```
 
 Start on the KSeF **TEST** environment: it needs no real credentials and nothing you do there is real.

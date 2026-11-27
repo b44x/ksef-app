@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
             'company' => fn () => $user === null ? null : Company::query()->first()?->only(['name', 'nip']),
             // The result of the last connection check, shown once.
             'report' => fn () => $request->session()->get('report'),
+            'saved' => fn () => (bool) $request->session()->get('saved'),
         ];
     }
 }

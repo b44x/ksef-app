@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
             <header className="border-b border-slate-200 bg-white">
-                <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+                <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
                     <Link href="/" className="font-semibold">
                         {app.name}
                     </Link>
@@ -30,6 +30,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                         {auth.user && (
                             <nav className="flex items-center gap-4 text-sm">
                                 {company && <span className="text-slate-500">{company.name}</span>}
+                                <Link href="/invoices" className="text-indigo-700 hover:underline">
+                                    {t('Invoices')}
+                                </Link>
                                 <Link href="/contractors" className="text-indigo-700 hover:underline">
                                     {t('Contractors')}
                                 </Link>
@@ -53,7 +56,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                     </div>
                 </div>
             </header>
-            <main className="mx-auto max-w-4xl space-y-6 px-4 py-8">{children}</main>
+            <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">{children}</main>
         </div>
     );
 }

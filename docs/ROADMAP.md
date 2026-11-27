@@ -13,7 +13,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 ## M2: Issue invoices
 - [x] Contractors
 - [x] Products, numbering series (a number is never handed out twice)
-- [ ] Invoice form: VAT, corrections, advance and settlement invoices; totals as the SDK computes them
+- [x] Invoice draft: lines, VAT rates, live totals from the SDK, checks in words before sending
+- [ ] Issue (take the number, build the FA(3), validate), corrections, advance and settlement invoices
 - [ ] Send in the background, follow the status, keep the UPO and the KSeF number
 - [ ] Invoice view with the QR code; download the XML
 

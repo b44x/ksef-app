@@ -21,7 +21,7 @@ export default function Setup() {
                             form.post('/setup', { onFinish: () => form.reset('password', 'password_confirmation') });
                         }}
                     >
-                        <Field label={t('Name')} error={form.errors.name}>
+                        <Field label={t('Your name')} error={form.errors.name}>
                             <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                         </Field>
                         <Field label={t('Email')} error={form.errors.email}>
