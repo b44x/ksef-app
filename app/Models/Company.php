@@ -58,6 +58,22 @@ class Company extends Model
         return $this->hasMany(Contractor::class);
     }
 
+    /**
+     * @return HasMany<Product, $this>
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * @return HasMany<NumberingSeries, $this>
+     */
+    public function numberingSeries(): HasMany
+    {
+        return $this->hasMany(NumberingSeries::class);
+    }
+
     /** A stored credential value (for example "token", "certificate", "private_key"), or null. */
     public function credential(string $key): ?string
     {

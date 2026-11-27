@@ -33,6 +33,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                                 <Link href="/contractors" className="text-indigo-700 hover:underline">
                                     {t('Contractors')}
                                 </Link>
+                                <Link href="/products" className="text-indigo-700 hover:underline">
+                                    {t('Products')}
+                                </Link>
+                                <Link href="/series" className="text-indigo-700 hover:underline">
+                                    {t('Numbering')}
+                                </Link>
                                 <Link href="/company" className="text-indigo-700 hover:underline">
                                     {t('Company')}
                                 </Link>

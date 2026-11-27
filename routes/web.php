@@ -6,6 +6,8 @@ use App\Http\Controllers\ContractorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\NumberingSeriesController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,5 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/contractors', [ContractorController::class, 'store'])->name('contractors.store');
     Route::put('/contractors/{contractor}', [ContractorController::class, 'update'])->name('contractors.update');
     Route::delete('/contractors/{contractor}', [ContractorController::class, 'destroy'])->name('contractors.destroy');
+    Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('series', NumberingSeriesController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['series' => 'series']);
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
