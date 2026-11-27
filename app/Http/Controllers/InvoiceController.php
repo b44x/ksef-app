@@ -153,7 +153,7 @@ class InvoiceController extends Controller
      */
     private function saveLines(Invoice $invoice, array $lines): void
     {
-        foreach (array_values($lines) as $position => $line) {
+        foreach ($lines as $position => $line) {
             $invoice->lines()->create([...$line, 'position' => $position + 1, 'unit' => $line['unit'] ?? null]);
         }
     }

@@ -74,6 +74,6 @@ class Invoice extends Model
 
     public function isDraft(): bool
     {
-        return $this->status === InvoiceStatus::Draft;
+        return $this->status->isEditable();
     }
 }
