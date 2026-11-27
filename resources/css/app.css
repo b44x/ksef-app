@@ -1,7 +1,94 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter';
 
 @source '../js/**/*.tsx';
 
-@theme {
-    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+/*
+ * Design tokens. Components use the semantic names (surface, muted, primary, ...), never raw colours, so the dark
+ * theme (which follows the system setting) and any future re-theming are a change in this file only.
+ */
+:root {
+    color-scheme: light;
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface-muted: #f0f2f5;
+    --border: #e2e5ea;
+    --border-strong: #cdd2da;
+    --text: #0e1624;
+    --muted: #5a6577;
+    --primary: #2f4fd8;
+    --primary-hover: #2640b8;
+    --primary-soft: #eaeefd;
+    --primary-text: #ffffff;
+    --success: #0f7b4f;
+    --success-soft: #e4f5ec;
+    --warning: #9a5b00;
+    --warning-soft: #fdf1dc;
+    --danger: #c0262d;
+    --danger-soft: #fce8e9;
+    --ring: rgb(47 79 216 / 0.35);
+    --shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 3px rgb(15 23 42 / 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+        --bg: #0b0f17;
+        --surface: #121826;
+        --surface-muted: #19212f;
+        --border: #232d3f;
+        --border-strong: #33415a;
+        --text: #e8ecf3;
+        --muted: #92a0b6;
+        --primary: #6f88f2;
+        --primary-hover: #8a9ff5;
+        --primary-soft: #1a2442;
+        --primary-text: #0b0f17;
+        --success: #4cc38a;
+        --success-soft: #0f2a1f;
+        --warning: #f0b45a;
+        --warning-soft: #33260f;
+        --danger: #f0767c;
+        --danger-soft: #3a1518;
+        --ring: rgb(111 136 242 / 0.45);
+        --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    }
+}
+
+@theme inline {
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --color-bg: var(--bg);
+    --color-surface: var(--surface);
+    --color-surface-muted: var(--surface-muted);
+    --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
+    --color-text: var(--text);
+    --color-muted: var(--muted);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-soft: var(--primary-soft);
+    --color-primary-text: var(--primary-text);
+    --color-success: var(--success);
+    --color-success-soft: var(--success-soft);
+    --color-warning: var(--warning);
+    --color-warning-soft: var(--warning-soft);
+    --color-danger: var(--danger);
+    --color-danger-soft: var(--danger-soft);
+    --shadow-card: var(--shadow);
+}
+
+@layer base {
+    html {
+        font-family: var(--font-sans);
+        font-feature-settings: 'cv11', 'ss01';
+    }
+    body {
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+    }
+    :focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
 }

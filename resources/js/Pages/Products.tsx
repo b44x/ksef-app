@@ -1,8 +1,14 @@
 import { router, useForm } from '@inertiajs/react';
+import { Package, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { Button, Card, Field, Input, Select } from '../Components/Ui';
+import { Button } from '../Components/Button';
+import { Dialog } from '../Components/Dialog';
+import { Field, Input, Select } from '../Components/Form';
+import { RowActions } from '../Components/RowActions';
+import { Badge, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
 import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
+import { useMoney } from '../lib/format';
 
 interface Product {
     id: number;
@@ -16,116 +22,127 @@ const empty = { name: '', unit: 'szt.', net_price: '', vat_rate: '23' };
 
 export default function Products({ products, vatRates }: { products: Product[]; vatRates: string[] }) {
     const t = useT();
+    const money = useMoney();
+    const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState<number | null>(null);
     const form = useForm(empty);
 
-    const reset = () => {
+    const close = () => {
+        setOpen(false);
         setEditing(null);
         form.setData(empty);
         form.clearErrors();
     };
-
-    const edit = (product: Product) => {
-        setEditing(product.id);
-        form.setData({
-            name: product.name,
-            unit: product.unit,
-            net_price: product.net_price,
-            vat_rate: product.vat_rate,
-        });
-        form.clearErrors();
+    const add = () => {
+        close();
+        setOpen(true);
     };
-
+    const edit = (p: Product) => {
+        form.setData({ name: p.name, unit: p.unit, net_price: p.net_price, vat_rate: p.vat_rate });
+        setEditing(p.id);
+        setOpen(true);
+    };
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        const options = { preserveScroll: true, onSuccess: reset };
-        if (editing === null) {
-            form.post('/products', options);
-        } else {
-            form.put(`/products/${editing}`, options);
+        const options = { preserveScroll: true, onSuccess: close };
+        if (editing === null) form.post('/products', options);
+        else form.put(`/products/${editing}`, options);
+    };
+    const remove = (p: Product) => {
+        if (window.confirm(t('Delete :name?', { name: p.name }))) {
+            router.delete(`/products/${p.id}`, { preserveScroll: true });
         }
     };
-
-    const remove = (product: Product) => {
-        if (window.confirm(t('Delete :name?', { name: product.name }))) {
-            router.delete(`/products/${product.id}`, { preserveScroll: true });
-        }
-    };
+    const set = (name: keyof typeof empty) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+        form.setData(name, e.target.value);
 
     return (
         <AppLayout>
-            <Card title={t('Products and services')}>
+            <PageHeader
+                title={t('Products and services')}
+                description={t('What you sell, with the usual price and VAT rate.')}
+                actions={
+                    <Button onClick={add}>
+                        <Plus className="size-4" />
+                        {t('Add a product or service')}
+                    </Button>
+                }
+            />
+
+            <Card className="[&>div]:p-0">
                 {products.length === 0 ? (
-                    <p className="text-sm text-slate-600">{t('No products yet.')}</p>
+                    <EmptyState
+                        icon={<Package className="size-6" />}
+                        title={t('No products yet.')}
+                        description={t('Save what you sell often, then add it to an invoice in one click.')}
+                        action={<Button onClick={add}>{t('Add a product or service')}</Button>}
+                    />
                 ) : (
-                    <table className="w-full text-left text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0">
-                        <thead className="text-slate-500">
+                    <Table>
+                        <thead>
                             <tr>
-                                <th className="py-1">{t('Name')}</th>
+                                <th>{t('Name')}</th>
                                 <th>{t('Unit')}</th>
                                 <th className="text-right">{t('Net price')}</th>
                                 <th>{t('VAT')}</th>
                                 <th />
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {products.map((p) => (
                                 <tr key={p.id}>
-                                    <td className="py-2 font-medium">{p.name}</td>
-                                    <td>{p.unit}</td>
-                                    <td className="text-right tabular-nums">{p.net_price}</td>
-                                    <td>{p.vat_rate}</td>
-                                    <td className="space-x-3 text-right">
-                                        <button onClick={() => edit(p)} className="text-indigo-700 hover:underline">
-                                            {t('Edit')}
-                                        </button>
-                                        <button onClick={() => remove(p)} className="text-red-700 hover:underline">
-                                            {t('Delete')}
-                                        </button>
+                                    <td className="font-medium">{p.name}</td>
+                                    <td className="text-muted">{p.unit}</td>
+                                    <td className="text-right tabular-nums">{money(p.net_price)}</td>
+                                    <td>
+                                        <Badge>{p.vat_rate}</Badge>
+                                    </td>
+                                    <td>
+                                        <RowActions onEdit={() => edit(p)} onDelete={() => remove(p)} />
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </Table>
                 )}
             </Card>
 
-            <Card title={editing === null ? t('Add a product or service') : t('Edit the product')}>
-                <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+            <Dialog
+                open={open}
+                onClose={close}
+                title={editing === null ? t('Add a product or service') : t('Edit the product')}
+            >
+                <form onSubmit={submit} className="space-y-4">
                     <Field label={t('Name')} error={form.errors.name}>
-                        <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
+                        <Input autoFocus value={form.data.name} onChange={set('name')} />
                     </Field>
-                    <Field label={t('Unit')} error={form.errors.unit}>
-                        <Input value={form.data.unit} onChange={(e) => form.setData('unit', e.target.value)} />
-                    </Field>
-                    <Field label={t('Net price')} error={form.errors.net_price}>
-                        <Input
-                            inputMode="decimal"
-                            value={form.data.net_price}
-                            onChange={(e) => form.setData('net_price', e.target.value)}
-                        />
-                    </Field>
-                    <Field label={t('VAT rate')} error={form.errors.vat_rate}>
-                        <Select value={form.data.vat_rate} onChange={(e) => form.setData('vat_rate', e.target.value)}>
-                            {vatRates.map((rate) => (
-                                <option key={rate} value={rate}>
-                                    {rate}
-                                </option>
-                            ))}
-                        </Select>
-                    </Field>
-                    <div className="flex gap-3 sm:col-span-2">
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <Field label={t('Unit')} error={form.errors.unit}>
+                            <Input value={form.data.unit} onChange={set('unit')} />
+                        </Field>
+                        <Field label={t('Net price')} error={form.errors.net_price}>
+                            <Input inputMode="decimal" value={form.data.net_price} onChange={set('net_price')} />
+                        </Field>
+                        <Field label={t('VAT rate')} error={form.errors.vat_rate}>
+                            <Select value={form.data.vat_rate} onChange={set('vat_rate')}>
+                                {vatRates.map((rate) => (
+                                    <option key={rate} value={rate}>
+                                        {rate}
+                                    </option>
+                                ))}
+                            </Select>
+                        </Field>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="secondary" onClick={close}>
+                            {t('Cancel')}
+                        </Button>
                         <Button type="submit" disabled={form.processing}>
                             {t('Save')}
                         </Button>
-                        {editing !== null && (
-                            <button type="button" onClick={reset} className="text-sm text-slate-600 hover:underline">
-                                {t('Cancel')}
-                            </button>
-                        )}
                     </div>
                 </form>
-            </Card>
+            </Dialog>
         </AppLayout>
     );
 }

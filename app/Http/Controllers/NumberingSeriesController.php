@@ -49,7 +49,7 @@ class NumberingSeriesController extends Controller
             $this->makeDefaultIfNeeded($company, $series);
         });
 
-        return back();
+        return back()->with('status', __('Saved.'));
     }
 
     public function update(NumberingSeriesRequest $request, NumberingSeries $series): RedirectResponse
@@ -61,7 +61,7 @@ class NumberingSeriesController extends Controller
             $this->makeDefaultIfNeeded($series->company, $series);
         });
 
-        return back();
+        return back()->with('status', __('Saved.'));
     }
 
     public function destroy(NumberingSeries $series): RedirectResponse
@@ -69,7 +69,7 @@ class NumberingSeriesController extends Controller
         $this->authorizeOwnership($series);
         $series->delete();
 
-        return back();
+        return back()->with('status', __('Deleted.'));
     }
 
     private function makeDefaultIfNeeded(Company $company, NumberingSeries $series): void

@@ -32,7 +32,7 @@ class ProductController extends Controller
     {
         Company::current()?->products()->create($request->validated());
 
-        return back();
+        return back()->with('status', __('Saved.'));
     }
 
     public function update(ProductRequest $request, Product $product): RedirectResponse
@@ -40,7 +40,7 @@ class ProductController extends Controller
         $this->authorizeOwnership($product);
         $product->update($request->validated());
 
-        return back();
+        return back()->with('status', __('Saved.'));
     }
 
     public function destroy(Product $product): RedirectResponse
@@ -48,6 +48,6 @@ class ProductController extends Controller
         $this->authorizeOwnership($product);
         $product->delete();
 
-        return back();
+        return back()->with('status', __('Deleted.'));
     }
 }

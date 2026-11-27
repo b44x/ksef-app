@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ScopedToCompany;
 use App\Http\Requests\InvoiceRequest;
 use App\Invoicing\InvoiceCheck;
+use App\Invoicing\InvoiceRow;
 use App\Invoicing\SdkInvoiceFactory;
 use App\Invoicing\Totals;
 use App\Models\Company;
@@ -32,16 +33,7 @@ class InvoiceController extends Controller
         $invoices = $company->invoices()->with(['contractor:id,name', 'lines'])->orderByDesc('issue_date')->orderByDesc('id')->get();
 
         return Inertia::render('Invoices', [
-            'invoices' => $invoices->map(fn (Invoice $i): array => [
-                'id' => $i->id,
-                'number' => $i->number,
-                'status' => $i->status->value,
-                'status_label' => $i->status->label(),
-                'issue_date' => $i->issue_date->toDateString(),
-                'contractor' => $i->contractor->name,
-                'currency' => $i->currency,
-                'gross' => Totals::of($this->lineData($i), $i->currency)['gross'],
-            ]),
+            'invoices' => $invoices->map(fn (Invoice $i): array => InvoiceRow::of($i)),
         ]);
     }
 
@@ -76,7 +68,7 @@ class InvoiceController extends Controller
             return $invoice;
         });
 
-        return redirect()->route('invoices.edit', $invoice)->with('saved', true);
+        return redirect()->route('invoices.edit', $invoice)->with('status', __('Draft saved.'));
     }
 
     public function update(InvoiceRequest $request, Invoice $invoice): RedirectResponse
@@ -90,7 +82,7 @@ class InvoiceController extends Controller
             $this->saveLines($invoice, $request->validated('lines'));
         });
 
-        return redirect()->route('invoices.edit', $invoice)->with('saved', true);
+        return redirect()->route('invoices.edit', $invoice)->with('status', __('Draft saved.'));
     }
 
     public function destroy(Invoice $invoice): RedirectResponse
@@ -99,7 +91,7 @@ class InvoiceController extends Controller
         abort_unless($invoice->isDraft(), 403);
         $invoice->delete();
 
-        return redirect()->route('invoices.index');
+        return redirect()->route('invoices.index')->with('status', __('Draft deleted.'));
     }
 
     /** The totals of the lines as typed so far, from the SDK, without saving anything. */
@@ -140,7 +132,7 @@ class InvoiceController extends Controller
             ],
             'today' => now()->toDateString(),
             'defaultSeriesId' => $company->numberingSeries()->where('is_default', true)->value('id'),
-            'contractors' => $company->contractors()->orderBy('name')->get(['id', 'name', 'nip']),
+            'contractors' => $company->contractors()->orderBy('name')->get(['id', 'name', 'nip', 'address_line1', 'address_line2', 'country']),
             'series' => $company->numberingSeries()->orderBy('name')->get(['id', 'name']),
             'products' => $company->products()->orderBy('name')->get(['id', 'name', 'unit', 'net_price', 'vat_rate']),
             'vatRates' => array_map(static fn (VatRate $r): string => $r->value, VatRate::cases()),
@@ -156,19 +148,6 @@ class InvoiceController extends Controller
         foreach ($lines as $position => $line) {
             $invoice->lines()->create([...$line, 'position' => $position + 1, 'unit' => $line['unit'] ?? null]);
         }
-    }
-
-    /**
-     * @return list<array{name: string, quantity: string, unit_net_price: string, vat_rate: string}>
-     */
-    private function lineData(Invoice $invoice): array
-    {
-        return $invoice->lines->map(fn ($l): array => [
-            'name' => $l->name,
-            'quantity' => $l->quantity,
-            'unit_net_price' => $l->unit_net_price,
-            'vat_rate' => $l->vat_rate,
-        ])->all();
     }
 
     private static function methodLabel(PaymentMethod $method): string

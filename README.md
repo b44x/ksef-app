@@ -10,16 +10,15 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 
 ## Screenshots
 
-The invoice draft, with the totals computed by the SDK as you type (English and Polish):
-
-![Invoice draft](docs/screenshots/08-invoice-draft.png)
-![Szkic faktury](docs/screenshots/09-invoice-draft-pl.png)
-
-| Invoices | Contractors |
+| Dashboard | Invoice draft |
 | --- | --- |
-| ![Invoices](docs/screenshots/07-invoices.png) | ![Kontrahenci](docs/screenshots/10-contractors-pl.png) |
-| **Products** | **Numbering series** |
-| ![Products](docs/screenshots/05-products.png) | ![Numbering](docs/screenshots/06-numbering.png) |
+| ![Dashboard](docs/screenshots/02-dashboard.png) | ![Invoice draft](docs/screenshots/08-invoice-draft.png) |
+| **Polish, same screen** | **Dark theme (follows the system)** |
+| ![Szkic faktury](docs/screenshots/09-invoice-draft-pl.png) | ![Dark theme](docs/screenshots/13-invoice-draft-dark.png) |
+| **Contractors** | **On a phone** |
+| ![Contractors](docs/screenshots/04-contractors.png) | ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) |
+
+The totals next to the lines are computed by the SDK as you type, never in the browser.
 
 ## What it will do
 

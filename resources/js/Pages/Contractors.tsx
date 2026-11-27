@@ -1,6 +1,11 @@
 import { router, useForm } from '@inertiajs/react';
+import { Plus, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Button, Card, Field, Input } from '../Components/Ui';
+import { Button } from '../Components/Button';
+import { Dialog } from '../Components/Dialog';
+import { Field, Input } from '../Components/Form';
+import { RowActions } from '../Components/RowActions';
+import { Card, EmptyState, PageHeader, Table } from '../Components/Ui';
 import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
 
@@ -18,132 +23,142 @@ const empty = { name: '', nip: '', country: 'PL', address_line1: '', address_lin
 
 export default function Contractors({ contractors }: { contractors: Contractor[] }) {
     const t = useT();
+    const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState<number | null>(null);
     const form = useForm(empty);
 
-    const edit = (contractor: Contractor) => {
-        setEditing(contractor.id);
-        form.setData({
-            name: contractor.name,
-            nip: contractor.nip ?? '',
-            country: contractor.country,
-            address_line1: contractor.address_line1,
-            address_line2: contractor.address_line2 ?? '',
-            email: contractor.email ?? '',
-        });
-        form.clearErrors();
-    };
-
-    const reset = () => {
+    const close = () => {
+        setOpen(false);
         setEditing(null);
         form.setData(empty);
         form.clearErrors();
     };
-
+    const add = () => {
+        close();
+        setOpen(true);
+    };
+    const edit = (c: Contractor) => {
+        form.setData({
+            name: c.name,
+            nip: c.nip ?? '',
+            country: c.country,
+            address_line1: c.address_line1,
+            address_line2: c.address_line2 ?? '',
+            email: c.email ?? '',
+        });
+        setEditing(c.id);
+        setOpen(true);
+    };
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        const options = { preserveScroll: true, onSuccess: reset };
-        if (editing === null) {
-            form.post('/contractors', options);
-        } else {
-            form.put(`/contractors/${editing}`, options);
+        const options = { preserveScroll: true, onSuccess: close };
+        if (editing === null) form.post('/contractors', options);
+        else form.put(`/contractors/${editing}`, options);
+    };
+    const remove = (c: Contractor) => {
+        if (window.confirm(t('Delete :name?', { name: c.name }))) {
+            router.delete(`/contractors/${c.id}`, { preserveScroll: true });
         }
     };
-
-    const remove = (contractor: Contractor) => {
-        if (window.confirm(t('Delete :name?', { name: contractor.name }))) {
-            router.delete(`/contractors/${contractor.id}`, { preserveScroll: true });
-        }
-    };
+    const set = (name: keyof typeof empty) => (e: React.ChangeEvent<HTMLInputElement>) =>
+        form.setData(name, e.target.value);
 
     return (
         <AppLayout>
-            <Card title={t('Contractors')}>
+            <PageHeader
+                title={t('Contractors')}
+                description={t('The buyers you issue invoices to.')}
+                actions={
+                    <Button onClick={add}>
+                        <Plus className="size-4" />
+                        {t('Add a contractor')}
+                    </Button>
+                }
+            />
+
+            <Card className="[&>div]:p-0">
                 {contractors.length === 0 ? (
-                    <p className="text-sm text-slate-600">{t('No contractors yet.')}</p>
+                    <EmptyState
+                        icon={<Users className="size-6" />}
+                        title={t('No contractors yet.')}
+                        description={t(
+                            'Add the companies and people you sell to; you pick them when you write an invoice.',
+                        )}
+                        action={<Button onClick={add}>{t('Add a contractor')}</Button>}
+                    />
                 ) : (
-                    <table className="w-full text-left text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0">
-                        <thead className="text-slate-500">
+                    <Table>
+                        <thead>
                             <tr>
-                                <th className="py-1">{t('Name')}</th>
+                                <th>{t('Name')}</th>
                                 <th>{t('NIP')}</th>
                                 <th>{t('Address')}</th>
                                 <th />
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {contractors.map((c) => (
                                 <tr key={c.id}>
-                                    <td className="py-2 font-medium">{c.name}</td>
-                                    <td>{c.nip ?? '—'}</td>
                                     <td>
-                                        {c.address_line1}, {c.country}
+                                        <div className="font-medium">{c.name}</div>
+                                        {c.email && <div className="text-xs text-muted">{c.email}</div>}
                                     </td>
-                                    <td className="space-x-3 text-right">
-                                        <button onClick={() => edit(c)} className="text-indigo-700 hover:underline">
-                                            {t('Edit')}
-                                        </button>
-                                        <button onClick={() => remove(c)} className="text-red-700 hover:underline">
-                                            {t('Delete')}
-                                        </button>
+                                    <td className="tabular-nums">{c.nip ?? '—'}</td>
+                                    <td className="text-muted">
+                                        {c.address_line1}
+                                        {c.address_line2 ? `, ${c.address_line2}` : ''} · {c.country}
+                                    </td>
+                                    <td>
+                                        <RowActions onEdit={() => edit(c)} onDelete={() => remove(c)} />
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </Table>
                 )}
             </Card>
 
-            <Card title={editing === null ? t('Add a contractor') : t('Edit the contractor')}>
-                <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+            <Dialog
+                open={open}
+                onClose={close}
+                title={editing === null ? t('Add a contractor') : t('Edit the contractor')}
+            >
+                <form onSubmit={submit} className="space-y-4">
                     <Field label={t('Name')} error={form.errors.name}>
-                        <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
+                        <Input autoFocus value={form.data.name} onChange={set('name')} />
                     </Field>
-                    <Field
-                        label={t('NIP')}
-                        error={form.errors.nip}
-                        hint={t('Leave empty for foreign buyers and consumers.')}
-                    >
-                        <Input value={form.data.nip} onChange={(e) => form.setData('nip', e.target.value)} />
-                    </Field>
-                    <Field label={t('Country (two letters)')} error={form.errors.country}>
-                        <Input
-                            maxLength={2}
-                            value={form.data.country}
-                            onChange={(e) => form.setData('country', e.target.value)}
-                        />
-                    </Field>
-                    <Field label={t('Email')} error={form.errors.email}>
-                        <Input
-                            type="email"
-                            value={form.data.email}
-                            onChange={(e) => form.setData('email', e.target.value)}
-                        />
-                    </Field>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <Field
+                            label={t('NIP')}
+                            error={form.errors.nip}
+                            className="sm:col-span-2"
+                            hint={t('Leave empty for foreign buyers and consumers.')}
+                        >
+                            <Input inputMode="numeric" value={form.data.nip} onChange={set('nip')} />
+                        </Field>
+                        <Field label={t('Country (two letters)')} error={form.errors.country}>
+                            <Input maxLength={2} value={form.data.country} onChange={set('country')} />
+                        </Field>
+                    </div>
                     <Field label={t('Address')} error={form.errors.address_line1}>
-                        <Input
-                            value={form.data.address_line1}
-                            onChange={(e) => form.setData('address_line1', e.target.value)}
-                        />
+                        <Input value={form.data.address_line1} onChange={set('address_line1')} />
                     </Field>
                     <Field label={t('Address, second line')} error={form.errors.address_line2}>
-                        <Input
-                            value={form.data.address_line2}
-                            onChange={(e) => form.setData('address_line2', e.target.value)}
-                        />
+                        <Input value={form.data.address_line2} onChange={set('address_line2')} />
                     </Field>
-                    <div className="flex gap-3 sm:col-span-2">
+                    <Field label={t('Email')} error={form.errors.email}>
+                        <Input type="email" value={form.data.email} onChange={set('email')} />
+                    </Field>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="secondary" onClick={close}>
+                            {t('Cancel')}
+                        </Button>
                         <Button type="submit" disabled={form.processing}>
                             {t('Save')}
                         </Button>
-                        {editing !== null && (
-                            <button type="button" onClick={reset} className="text-sm text-slate-600 hover:underline">
-                                {t('Cancel')}
-                            </button>
-                        )}
                     </div>
                 </form>
-            </Card>
+            </Dialog>
         </AppLayout>
     );
 }

@@ -1,7 +1,9 @@
-import { Link } from '@inertiajs/react';
-import { Card } from '../Components/Ui';
+import { FilePlus2, FileText } from 'lucide-react';
+import { ButtonLink } from '../Components/Button';
+import { Badge, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
 import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
+import { useMoney } from '../lib/format';
 
 interface Row {
     id: number;
@@ -16,56 +18,63 @@ interface Row {
 
 export default function Invoices({ invoices }: { invoices: Row[] }) {
     const t = useT();
+    const money = useMoney();
 
     return (
         <AppLayout>
-            <Card title={t('Invoices')}>
-                <div className="mb-4">
-                    <Link
-                        href="/invoices/create"
-                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-                    >
+            <PageHeader
+                title={t('Invoices')}
+                description={t('Everything you issue, from drafts to what KSeF accepted.')}
+                actions={
+                    <ButtonLink href="/invoices/create">
+                        <FilePlus2 className="size-4" />
                         {t('New invoice')}
-                    </Link>
-                </div>
+                    </ButtonLink>
+                }
+            />
+
+            <Card className="[&>div]:p-0">
                 {invoices.length === 0 ? (
-                    <p className="text-sm text-slate-600">{t('No invoices yet.')}</p>
+                    <EmptyState
+                        icon={<FileText className="size-6" />}
+                        title={t('No invoices yet.')}
+                        description={t('Create the first one; it stays a draft until you issue it.')}
+                        action={<ButtonLink href="/invoices/create">{t('New invoice')}</ButtonLink>}
+                    />
                 ) : (
-                    <table className="w-full text-left text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0">
-                        <thead className="text-slate-500">
+                    <Table>
+                        <thead>
                             <tr>
-                                <th className="py-1">{t('Number')}</th>
+                                <th>{t('Number')}</th>
                                 <th>{t('Issue date')}</th>
                                 <th>{t('Buyer')}</th>
                                 <th className="text-right">{t('Gross')}</th>
                                 <th>{t('Status')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {invoices.map((i) => (
                                 <tr key={i.id}>
-                                    <td className="py-2 font-medium">
-                                        <Link
+                                    <td>
+                                        <a
                                             href={`/invoices/${i.id}/edit`}
-                                            className="text-indigo-700 hover:underline"
+                                            className="font-medium text-primary hover:underline"
                                         >
                                             {i.number ?? t('Draft')}
-                                        </Link>
+                                        </a>
                                     </td>
-                                    <td>{i.issue_date}</td>
+                                    <td className="tabular-nums text-muted">{i.issue_date}</td>
                                     <td>{i.contractor}</td>
-                                    <td className="text-right tabular-nums">
-                                        {i.gross} {i.currency}
+                                    <td className="text-right font-medium tabular-nums">
+                                        {money(i.gross, i.currency)}
                                     </td>
                                     <td>
-                                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
-                                            {i.status_label}
-                                        </span>
+                                        <Badge>{i.status_label}</Badge>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </Table>
                 )}
             </Card>
         </AppLayout>

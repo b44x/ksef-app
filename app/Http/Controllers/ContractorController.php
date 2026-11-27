@@ -30,7 +30,7 @@ class ContractorController extends Controller
     {
         Company::current()?->contractors()->create($request->validated());
 
-        return back();
+        return back()->with('status', __('Saved.'));
     }
 
     public function update(ContractorRequest $request, Contractor $contractor): RedirectResponse
@@ -38,7 +38,7 @@ class ContractorController extends Controller
         $this->authorizeOwnership($contractor);
         $contractor->update($request->validated());
 
-        return back();
+        return back()->with('status', __('Saved.'));
     }
 
     public function destroy(Contractor $contractor): RedirectResponse
@@ -46,6 +46,6 @@ class ContractorController extends Controller
         $this->authorizeOwnership($contractor);
         $contractor->delete();
 
-        return back();
+        return back()->with('status', __('Deleted.'));
     }
 }

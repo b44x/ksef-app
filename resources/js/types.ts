@@ -17,7 +17,7 @@ export interface SharedProps {
     auth: { user: { name: string; email: string } | null };
     company: { name: string; nip: string } | null;
     report: Report | null;
-    saved: boolean;
+    status: string | null;
     locale: string;
     locales: Record<string, string>;
     translations: Record<string, string>;
