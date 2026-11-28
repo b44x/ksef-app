@@ -263,7 +263,10 @@ class OfflineInvoiceTest extends TestCase
         $this->assertNull(app(InvoiceQr::class)->for($invoice));
         $this->assertSame('2026-12-10', $invoice->offline_deadline->setTimezone('Europe/Warsaw')->format('Y-m-d'), 'Counted like a failure: seven business days after it ends.');
 
-        $modes = collect($this->get("/invoices/{$this->draft()->id}/edit")->viewData('page')['props']['offline']['modes'])->pluck('needs_certificate', 'value');
+        $modes = [];
+        foreach ($this->get("/invoices/{$this->draft()->id}/edit")->viewData('page')['props']['offline']['modes'] as $mode) {
+            $modes[$mode['value']] = $mode['needs_certificate'];
+        }
         $this->assertFalse($modes['total_failure']);
         $this->assertTrue($modes['offline24']);
         $this->assertStringNotContainsString('data:image', app(InvoicePdf::class)->html(app(InvoiceView::class)->sales($invoice), 'pl'));

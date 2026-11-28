@@ -25,6 +25,9 @@ class NotificationTest extends TestCase
         $this->company = Company::create(['name' => 'Seller sp. z o.o.', 'nip' => '5265877635', 'environment' => 'test', 'auth_method' => 'token', 'credentials' => ['token' => 't']]);
     }
 
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
     private function invoice(array $attributes): void
     {
         $buyer = $this->company->contractors()->firstOrCreate(['nip' => '7762811692'], ['name' => 'Buyer', 'country' => 'PL', 'address_line1' => 'x']);
@@ -50,7 +53,7 @@ class NotificationTest extends TestCase
         $this->company->forceFill(['last_digest_at' => now()->subDay()])->save();
 
         $digest = app(BuildDigest::class)->for($this->company->fresh());
-
+        $this->assertNotNull($digest);
         $this->assertSame([['number' => 'FV/001', 'deadline' => $digest['offline'][0]['deadline'], 'overdue' => true]], $digest['offline']);
         $this->assertSame(['FV/2'], array_column($digest['purchases'], 'number'), 'The purchase received before the last summary is old news.');
         $this->assertSame([['number' => 'FV/002', 'error' => 'Błąd walidacji']], $digest['rejected']);
@@ -72,7 +75,7 @@ class NotificationTest extends TestCase
         $this->company->forceFill(['notify_email' => 'owner@example.test'])->save();
 
         $this->artisan('ksef:send-digest')->assertSuccessful();
-        Mail::assertSent(DigestMail::class, fn (DigestMail $m) => $m->hasTo('owner@example.test') && $m->digest['purchases'][0]['number'] === 'FV/1');
+        Mail::assertSent(DigestMail::class, fn (DigestMail $m) => $m->hasTo('owner@example.test') && ($m->digest['purchases'][0]['number'] ?? null) === 'FV/1');
         $this->assertNotNull($this->company->fresh()->last_digest_at);
 
         $this->artisan('ksef:send-digest')->assertSuccessful();
