@@ -15,7 +15,7 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Products, numbering series (a number is never handed out twice)
 - [x] Invoice draft: lines, VAT rates, live totals from the SDK, checks in words before sending
 - [x] Issue: the number from the series, the FA(3) built and schema-validated by the SDK, both frozen; XML download
-- [x] Corrections (KOR) of accepted invoices, before and after lines, several in a row
+- [x] Corrections (KOR) of accepted invoices, before and after lines, several in a row (a EUR invoice and its correction accepted by KSeF TEST)
 - [ ] Advance and settlement invoices
 - [x] Send in the background (queue), follow the status, keep the UPO and the KSeF number; safe to send again after a lost connection
 - [ ] Invoice view with the QR code; download the XML
