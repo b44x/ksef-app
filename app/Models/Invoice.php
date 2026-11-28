@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property int $contractor_id
  * @property int $numbering_series_id
  * @property int|null $invoice_template_id
+ * @property int|null $recurring_invoice_id
  * @property InvoiceStatus $status
  * @property string|null $number
  * @property Carbon $issue_date
@@ -55,6 +56,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id'])]
 class Invoice extends Model
 {
+    /** A new invoice is a draft, whether or not it has been read back from the database yet. */
+    protected $attributes = ['status' => 'draft'];
+
     /**
      * @return array<string, string>
      */

@@ -15,3 +15,5 @@ Schedule::command('ksef:check-availability')->everyFiveMinutes();
 Schedule::command('ksef:sync-purchases')->everyFifteenMinutes()->withoutOverlapping();
 // A daily summary of what needs attention, by e-mail, for companies that gave an address (and the server a mail setup).
 Schedule::command('ksef:send-digest')->dailyAt('07:30');
+// Recurring invoices are made early in the morning, so that they are waiting when the working day starts.
+Schedule::command('invoices:generate-recurring')->dailyAt('05:00');

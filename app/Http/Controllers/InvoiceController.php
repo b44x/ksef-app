@@ -286,6 +286,8 @@ class InvoiceController extends Controller
                 'payment_method' => $invoice->payment_method,
                 'bank_account' => $invoice->bank_account,
                 'notes' => $invoice->notes,
+                'invoice_template_id' => $invoice->invoice_template_id,
+                'due_date' => $invoice->due_date !== null ? now()->addDays((int) $invoice->issue_date->diffInDays($invoice->due_date))->toDateString() : null,
             ]);
             $copy->company()->associate($invoice->company);
             $copy->save();

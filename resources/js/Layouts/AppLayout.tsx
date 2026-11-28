@@ -12,6 +12,7 @@ import {
     Menu,
     Package,
     Palette,
+    Repeat,
     Users,
     X,
 } from 'lucide-react';
@@ -26,6 +27,7 @@ const nav = [
     { href: '/invoices/create', label: 'New invoice', icon: FilePlus2, accent: true },
     { href: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { href: '/invoices', label: 'Invoices', icon: FileText },
+    { href: '/recurring', label: 'Recurring', icon: Repeat },
     { href: '/purchases', label: 'Purchases', icon: Inbox, badge: true },
     { href: '/reports', label: 'Reports', icon: BarChart3 },
     { href: '/contractors', label: 'Contractors', icon: Users },

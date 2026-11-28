@@ -1,6 +1,18 @@
 import { router, usePage } from '@inertiajs/react';
-import { CheckCircle2, CircleDashed, Copy, CopyPlus, Download, Loader2, RefreshCw, Send, XCircle } from 'lucide-react';
+import {
+    CheckCircle2,
+    CircleDashed,
+    Copy,
+    CopyPlus,
+    Download,
+    Repeat,
+    Loader2,
+    RefreshCw,
+    Send,
+    XCircle,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { RecurringDialog } from '../Components/RecurringDialog';
 import { PdfLinks } from '../Components/PdfLinks';
 import { type PaymentInfo, PaymentsCard } from '../Components/PaymentsCard';
 import { Button, ButtonLink } from '../Components/Button';
@@ -54,6 +66,13 @@ interface Props {
         overdue: boolean;
     } | null;
     qr: { verification: string; issuer: string | null } | null;
+}
+
+/** The same day next month (the 31st becomes the month's last day): a sensible first date for a monthly repeat. */
+function nextMonth(day: string): string {
+    const [y, m, d] = day.split('-').map(Number);
+    const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(y, m, Math.min(d, last))).toISOString().slice(0, 10);
 }
 
 /** Where the invoice stands on its way to KSeF: issued, sent, accepted (or rejected). */
@@ -122,6 +141,7 @@ export default function InvoiceShow({ invoice, totals, payment, today, canSend, 
 
     const send = () => router.post(`/invoices/${invoice.id}/send`);
     const [anchor, setAnchor] = useState('');
+    const [repeating, setRepeating] = useState(false);
     const when = (iso: string) =>
         new Date(iso).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-GB', { dateStyle: 'long' });
 
@@ -137,6 +157,10 @@ export default function InvoiceShow({ invoice, totals, payment, today, canSend, 
                             {t('Back to the list')}
                         </ButtonLink>
                         <PdfLinks href={`/invoices/${invoice.id}/pdf`} />
+                        <Button variant="secondary" onClick={() => setRepeating(true)}>
+                            <Repeat className="size-4" />
+                            {t('Repeat')}
+                        </Button>
                         <a href={`/invoices/${invoice.id}/xml`} download>
                             <Button variant="secondary">
                                 <Download className="size-4" />
@@ -378,6 +402,14 @@ export default function InvoiceShow({ invoice, totals, payment, today, canSend, 
                     </div>
                 </div>
             </div>
+
+            <RecurringDialog
+                invoiceId={invoice.id}
+                suggestedName={`${invoice.parties?.buyer?.name ?? ''} · ${invoice.number}`}
+                firstRun={nextMonth(today)}
+                open={repeating}
+                onClose={() => setRepeating(false)}
+            />
 
             <PaymentsCard invoiceId={invoice.id} currency={invoice.currency} payment={payment} today={today} />
 

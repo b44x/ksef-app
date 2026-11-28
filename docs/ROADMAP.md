@@ -43,6 +43,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Payments: register of payments, paid / partly paid / overdue, one-click "paid", invoice list filters and search
 - [x] Dashboard and reports: sales by month, VAT by rate, top customers, receivables ageing, sales register CSV
 
+- [x] Recurring invoices: weekly to yearly, draft or issued automatically, daily scheduler run
+
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)
 - [ ] Manual check that the installers start and work on real Windows and macOS machines

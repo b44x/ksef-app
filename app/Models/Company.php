@@ -99,6 +99,14 @@ class Company extends Model
     }
 
     /**
+     * @return HasMany<RecurringInvoice, $this>
+     */
+    public function recurringInvoices(): HasMany
+    {
+        return $this->hasMany(RecurringInvoice::class);
+    }
+
+    /**
      * @return HasMany<InvoiceTemplate, $this>
      */
     public function templates(): HasMany
