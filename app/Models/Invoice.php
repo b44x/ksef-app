@@ -157,7 +157,7 @@ class Invoice extends Model
         $latest = $this->corrections()
             ->whereNotIn('status', [InvoiceStatus::Draft, InvoiceStatus::Rejected])
             ->when($before !== null, fn ($q) => $q->where('id', '<', $before))
-            ->with('lines')->get()->last();
+            ->with('lines')->orderByDesc('id')->first();
 
         return $latest !== null ? $latest->lines : $this->lines;
     }
