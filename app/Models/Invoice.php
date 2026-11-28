@@ -23,6 +23,9 @@ use Illuminate\Support\Carbon;
  * @property int|null $recurring_invoice_id
  * @property int|null $corrects_invoice_id
  * @property string $kind
+ * @property bool $split_payment
+ * @property bool $cash_accounting
+ * @property string|null $exemption_basis
  * @property int|null $converted_from_id
  * @property string|null $correction_reason
  * @property int $correction_type
@@ -61,7 +64,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property Carbon|null $accepted_at
  */
-#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'currency', 'exchange_rate', 'exchange_rate_date', 'kind'])]
+#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'currency', 'exchange_rate', 'exchange_rate_date', 'kind', 'split_payment', 'cash_accounting', 'exemption_basis'])]
 class Invoice extends Model
 {
     /** A new invoice is a draft, whether or not it has been read back from the database yet. */
@@ -77,6 +80,8 @@ class Invoice extends Model
             'issue_date' => 'date',
             'sale_date' => 'date',
             'due_date' => 'date',
+            'split_payment' => 'boolean',
+            'cash_accounting' => 'boolean',
             'exchange_rate' => 'decimal:6',
             'exchange_rate_date' => 'date',
             'net_total' => 'decimal:2',

@@ -5,11 +5,13 @@ namespace App\Invoicing;
 use App\Models\Invoice;
 use App\Models\InvoiceLine;
 use B4x\Ksef\Invoice\Address;
+use B4x\Ksef\Invoice\Annotations;
 use B4x\Ksef\Invoice\Buyer;
 use B4x\Ksef\Invoice\BuyerIdentifier;
 use B4x\Ksef\Invoice\CorrectedInvoice;
 use B4x\Ksef\Invoice\Correction;
 use B4x\Ksef\Invoice\CorrectionType;
+use B4x\Ksef\Invoice\Gtu;
 use B4x\Ksef\Invoice\Invoice as SdkInvoice;
 use B4x\Ksef\Invoice\InvoiceLine as SdkLine;
 use B4x\Ksef\Invoice\Payment;
@@ -50,6 +52,13 @@ final class SdkInvoiceFactory
         if ($invoice->currency !== 'PLN' && $invoice->exchange_rate !== null) {
             $builder->exchangeRate(self::trim($invoice->exchange_rate));
         }
+        if ($invoice->split_payment || $invoice->cash_accounting || ($invoice->exemption_basis !== null && $invoice->exemption_basis !== '')) {
+            $builder->annotations(new Annotations(
+                cashAccounting: $invoice->cash_accounting,
+                splitPayment: $invoice->split_payment,
+                exemptionBasis: $invoice->exemption_basis !== null && $invoice->exemption_basis !== '' ? $invoice->exemption_basis : null,
+            ));
+        }
         if ($invoice->sale_date !== null) {
             $builder->saleDate($invoice->sale_date);
         }
@@ -86,7 +95,7 @@ final class SdkInvoiceFactory
 
     private function line(InvoiceLine $line, string $currency): SdkLine
     {
-        return SdkLine::of(
+        $sdk = SdkLine::of(
             $line->name,
             self::trim($line->quantity),
             $line->unit,
@@ -94,6 +103,8 @@ final class SdkInvoiceFactory
             VatRate::from($line->vat_rate),
             $currency,
         );
+
+        return $line->gtu !== null && $line->gtu !== '' ? $sdk->withGtu(Gtu::from($line->gtu)) : $sdk;
     }
 
     /** Database decimals come with trailing zeros ("1.000000"); the SDK takes the plain number. */

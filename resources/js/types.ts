@@ -48,4 +48,5 @@ export interface InvoiceLineForm {
     quantity: string;
     unit_net_price: string;
     vat_rate: string;
+    gtu?: string;
 }

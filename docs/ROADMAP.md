@@ -59,6 +59,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Proforma invoices: own numbering, PDF and e-mail, never sent to KSeF, one click to make the VAT invoice from it
 - [ ] Advance and settlement invoices (the SDK supports them)
 
+- [x] Polish VAT remarks: split payment (MPP), cash accounting, basis for the VAT exemption, GTU group per line
+
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)
 - [ ] Manual check that the installers start and work on real Windows and macOS machines

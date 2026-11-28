@@ -30,6 +30,9 @@ import type { InvoiceLineForm, SharedProps, TotalsPreview } from '../types';
 interface Props {
     invoice: {
         kind: string;
+        split_payment: boolean;
+        cash_accounting: boolean;
+        exemption_basis: string | null;
         converted_from: { id: number; number: string } | null;
         converted_to: { id: number; number: string | null }[];
         id: number;
@@ -437,6 +440,14 @@ export default function InvoiceShow({
                             <div>
                                 <span className="text-muted">{t('Bank account')}: </span>
                                 <span className="font-mono">{invoice.bank_account}</span>
+                            </div>
+                        )}
+                        {invoice.split_payment && <div>{t('Split payment (MPP)')}</div>}
+                        {invoice.cash_accounting && <div>{t('Cash accounting')}</div>}
+                        {invoice.exemption_basis && (
+                            <div>
+                                <span className="text-muted">{t('Basis for the VAT exemption')}: </span>
+                                {invoice.exemption_basis}
                             </div>
                         )}
                         {invoice.notes && <p className="whitespace-pre-line text-muted">{invoice.notes}</p>}

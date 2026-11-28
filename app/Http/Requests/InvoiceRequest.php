@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Invoicing\Currencies;
 use App\Models\Company;
+use B4x\Ksef\Invoice\Gtu;
 use B4x\Ksef\Invoice\PaymentMethod;
 use B4x\Ksef\Invoice\VatRate;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,6 +28,9 @@ class InvoiceRequest extends FormRequest
             'contractor_id' => ['required', Rule::exists('contractors', 'id')->where('company_id', $company)],
             'numbering_series_id' => ['required', Rule::exists('numbering_series', 'id')->where('company_id', $company)],
             'issue_date' => ['required', 'date_format:Y-m-d'],
+            'split_payment' => ['sometimes', 'boolean'],
+            'cash_accounting' => ['sometimes', 'boolean'],
+            'exemption_basis' => ['nullable', 'string', 'max:256'],
             'kind' => ['sometimes', Rule::in(['vat', 'proforma'])],
             'currency' => ['sometimes', Rule::in(Currencies::CODES)],
             'exchange_rate' => [Rule::requiredIf(fn () => $this->input('currency', 'PLN') !== 'PLN'), 'nullable', 'numeric', 'gt:0', 'decimal:0,6', 'max:9999999'],
@@ -57,6 +61,7 @@ class InvoiceRequest extends FormRequest
             $prefix.'quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999', 'decimal:0,6'],
             $prefix.'unit_net_price' => ['required', 'numeric', 'min:0', 'max:999999999999', 'decimal:0,8'],
             $prefix.'vat_rate' => ['required', Rule::enum(VatRate::class)],
+            $prefix.'gtu' => ['nullable', Rule::enum(Gtu::class)],
         ];
     }
 
@@ -70,7 +75,7 @@ class InvoiceRequest extends FormRequest
         // Empty form fields arrive as empty strings; for dates and the optional text they mean "not given".
         $this->merge(array_map(
             static fn (mixed $v): mixed => $v === '' ? null : $v,
-            $this->only(['sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'exchange_rate', 'exchange_rate_date']),
+            $this->only(['sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'exchange_rate', 'exchange_rate_date', 'exemption_basis']),
         ));
     }
 }

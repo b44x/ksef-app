@@ -9,6 +9,7 @@ export interface Defaults {
     payment_method: string;
     bank_account: string;
     notes: string;
+    cash_accounting: boolean;
 }
 
 /** What a new invoice starts with, so it does not have to be typed every time. */
@@ -25,6 +26,7 @@ export function DefaultsCard({
         default_payment_method: defaults.payment_method,
         default_bank_account: defaults.bank_account,
         default_notes: defaults.notes,
+        default_cash_accounting: defaults.cash_accounting,
     });
 
     return (
@@ -80,6 +82,15 @@ export function DefaultsCard({
                         onChange={(e) => form.setData('default_notes', e.target.value)}
                     />
                 </Field>
+                <label className="flex items-center gap-2 text-sm">
+                    <input
+                        type="checkbox"
+                        className="size-4 rounded border-border-strong accent-[var(--primary)]"
+                        checked={form.data.default_cash_accounting}
+                        onChange={(e) => form.setData('default_cash_accounting', e.target.checked)}
+                    />
+                    {t('I use cash accounting (the VAT is due when paid)')}
+                </label>
                 <div className="flex justify-end">
                     <Button type="submit" disabled={form.processing}>
                         {t('Save')}

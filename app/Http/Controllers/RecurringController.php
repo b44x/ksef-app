@@ -74,7 +74,7 @@ class RecurringController extends Controller
             'payment_method' => $invoice->payment_method,
             'bank_account' => $invoice->bank_account,
             'notes' => $invoice->notes,
-            'lines' => $invoice->lines->map(fn ($l): array => $l->only(['name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']))->all(),
+            'lines' => $invoice->lines->map(fn ($l): array => $l->only(['name', 'unit', 'quantity', 'unit_net_price', 'vat_rate', 'gtu']))->all(),
         ]);
         $schedule->company_id = $invoice->company_id;
         $schedule->save();

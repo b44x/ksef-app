@@ -162,6 +162,10 @@
     </div>
 @endif
 
+@if (! empty($i['remarks']))
+    <div class="box">@foreach ($i['remarks'] as $remark)<div>{{ __($remark['label']) }}@if ($remark['value']): {{ $remark['value'] }}@endif</div>@endforeach</div>
+@endif
+
 @if ($i['notes'] && $show['notes'])
     <div class="box"><b>{{ __('Notes') }}</b>{!! nl2br(e($i['notes'])) !!}</div>
 @endif

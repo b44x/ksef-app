@@ -27,6 +27,7 @@ use App\Models\Company;
 use App\Models\Invoice;
 use App\Pdf\InvoicePdf;
 use App\Pdf\InvoiceView;
+use B4x\Ksef\Invoice\Gtu;
 use B4x\Ksef\Invoice\PaymentMethod;
 use B4x\Ksef\Invoice\VatRate;
 use Carbon\CarbonImmutable;
@@ -92,6 +93,7 @@ class InvoiceController extends Controller
             'quantity' => SdkInvoiceFactory::trim($l->quantity),
             'unit_net_price' => SdkInvoiceFactory::trim($l->unit_net_price),
             'vat_rate' => $l->vat_rate,
+            'gtu' => $l->gtu ?? '',
         ])->all();
 
         $before = $invoice->isCorrection()
@@ -102,6 +104,9 @@ class InvoiceController extends Controller
             'invoice' => [
                 'id' => $invoice->id,
                 'kind' => $invoice->kind,
+                'split_payment' => $invoice->split_payment,
+                'cash_accounting' => $invoice->cash_accounting,
+                'exemption_basis' => $invoice->exemption_basis,
                 'converted_from' => $invoice->convertedFrom === null ? null : ['id' => $invoice->convertedFrom->id, 'number' => $invoice->convertedFrom->number],
                 'converted_to' => Invoice::query()->where('converted_from_id', $invoice->id)->get(['id', 'number'])->map(fn (Invoice $i): array => ['id' => $i->id, 'number' => $i->number])->all(),
                 'number' => $invoice->number,
@@ -312,12 +317,15 @@ class InvoiceController extends Controller
                 'bank_account' => $invoice->bank_account,
                 'notes' => $invoice->notes,
                 'invoice_template_id' => $invoice->invoice_template_id,
+                'split_payment' => $invoice->split_payment,
+                'cash_accounting' => $invoice->cash_accounting,
+                'exemption_basis' => $invoice->exemption_basis,
                 'due_date' => $invoice->due_date !== null ? now()->addDays((int) $invoice->issue_date->diffInDays($invoice->due_date))->toDateString() : null,
             ]);
             $copy->company()->associate($invoice->company);
             $copy->save();
             foreach ($invoice->lines as $line) {
-                $copy->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']));
+                $copy->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate', 'gtu']));
             }
 
             return $copy;
@@ -364,12 +372,15 @@ class InvoiceController extends Controller
                 'currency' => $invoice->currency,
                 'exchange_rate' => $invoice->exchange_rate,
                 'exchange_rate_date' => $invoice->exchange_rate_date?->toDateString(),
+                'split_payment' => $invoice->split_payment,
+                'cash_accounting' => $invoice->cash_accounting,
+                'exemption_basis' => $invoice->exemption_basis,
             ]);
             $draft->company_id = $invoice->company_id;
             $draft->converted_from_id = $invoice->id;
             $draft->save();
             foreach ($invoice->lines as $line) {
-                $draft->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']));
+                $draft->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate', 'gtu']));
             }
 
             return $draft;
@@ -395,6 +406,9 @@ class InvoiceController extends Controller
                     'payment_method' => $invoice->payment_method,
                     'bank_account' => $invoice->bank_account,
                     'invoice_template_id' => $invoice->invoice_template_id,
+                    'split_payment' => $invoice->split_payment,
+                    'cash_accounting' => $invoice->cash_accounting,
+                    'exemption_basis' => $invoice->exemption_basis,
                     'correction_type' => 1,
                 ]);
                 $draft->company_id = $invoice->company_id;
@@ -404,7 +418,7 @@ class InvoiceController extends Controller
                 $draft->exchange_rate_date = $invoice->exchange_rate_date;
                 $draft->save();
                 foreach ($invoice->currentLines() as $line) {
-                    $draft->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']));
+                    $draft->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate', 'gtu']));
                 }
 
                 return $draft;
@@ -526,12 +540,16 @@ class InvoiceController extends Controller
                 'bank_account' => $invoice->bank_account ?? '',
                 'notes' => $invoice->notes ?? '',
                 'invoice_template_id' => $invoice->invoice_template_id === null ? '' : (string) $invoice->invoice_template_id,
+                'split_payment' => $invoice->split_payment,
+                'cash_accounting' => $invoice->cash_accounting,
+                'exemption_basis' => $invoice->exemption_basis ?? '',
                 'lines' => $invoice->lines->map(fn ($l): array => [
                     'name' => $l->name,
                     'unit' => $l->unit ?? '',
                     'quantity' => SdkInvoiceFactory::trim($l->quantity),
                     'unit_net_price' => SdkInvoiceFactory::trim($l->unit_net_price),
                     'vat_rate' => $l->vat_rate,
+                    'gtu' => $l->gtu ?? '',
                 ]),
                 'correction' => $invoice->isCorrection() ? [
                     'of_id' => $invoice->corrected->id,
@@ -568,12 +586,14 @@ class InvoiceController extends Controller
                 'payment_method' => $company->default_payment_method === null ? '6' : (string) $company->default_payment_method,
                 'bank_account' => $company->default_bank_account ?? '',
                 'notes' => $company->default_notes ?? '',
+                'cash_accounting' => $company->default_cash_accounting,
             ],
             'defaultSeriesId' => $company->numberingSeries()->where('is_default', true)->value('id'),
             'contractors' => $company->contractors()->orderBy('name')->get(['id', 'name', 'nip', 'address_line1', 'address_line2', 'country']),
             'series' => $company->numberingSeries()->orderBy('name')->get(['id', 'name']),
             'products' => $company->products()->orderBy('name')->get(['id', 'name', 'unit', 'net_price', 'vat_rate']),
             'currencies' => Currencies::CODES,
+            'gtuCodes' => array_map(static fn (Gtu $g): string => $g->value, Gtu::cases()),
             'vatRates' => array_map(static fn (VatRate $r): string => $r->value, VatRate::cases()),
             'paymentMethods' => array_map(static fn (PaymentMethod $m): array => ['value' => (string) $m->value, 'label' => __(PaymentLabel::of($m))], PaymentMethod::cases()),
         ]);

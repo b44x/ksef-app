@@ -15,8 +15,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $quantity
  * @property string $unit_net_price
  * @property string $vat_rate
+ * @property string|null $gtu
  */
-#[Fillable(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate'])]
+#[Fillable(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate', 'gtu'])]
 class InvoiceLine extends Model
 {
     public $timestamps = false;

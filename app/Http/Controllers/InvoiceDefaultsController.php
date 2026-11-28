@@ -21,6 +21,7 @@ class InvoiceDefaultsController extends Controller
             'default_payment_method' => ['nullable', Rule::in(array_map(static fn (PaymentMethod $m): int => $m->value, PaymentMethod::cases()))],
             'default_bank_account' => ['nullable', 'string', 'min:10', 'max:34'],
             'default_notes' => ['nullable', 'string', 'max:3500'],
+            'default_cash_accounting' => ['sometimes', 'boolean'],
         ]);
         $company->forceFill(array_map(static fn (mixed $v): mixed => $v === '' ? null : $v, $data))->save();
 

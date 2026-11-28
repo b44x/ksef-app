@@ -592,5 +592,13 @@
     "proforma": "proforma",
     "Proforma invoice": "Faktura proforma",
     "This is a proforma invoice. It is not a VAT invoice.": "To jest faktura proforma. Nie jest fakturą VAT.",
-    "A VAT invoice draft was made from :number.": "Szkic faktury VAT powstał na podstawie :number."
+    "A VAT invoice draft was made from :number.": "Szkic faktury VAT powstał na podstawie :number.",
+    "Goods and services group (GTU), if the law requires it": "Grupa towarów i usług (GTU), jeśli wymaga tego prawo",
+    "Split payment (MPP)": "Mechanizm podzielonej płatności (MPP)",
+    "Required for some goods and services above PLN 15,000 gross.": "Wymagany przy niektórych towarach i usługach powyżej 15 000 zł brutto.",
+    "Cash accounting (the VAT is due when paid)": "Metoda kasowa (VAT należny po zapłacie)",
+    "Basis for the VAT exemption": "Podstawa zwolnienia z VAT",
+    "The provision of the law or the contract, as the exemption (rate \"zw\") requires.": "Przepis prawa lub umowy, którego wymaga zwolnienie (stawka „zw”).",
+    "I use cash accounting (the VAT is due when paid)": "Rozliczam się metodą kasową (VAT należny po zapłacie)",
+    "Cash accounting": "Metoda kasowa"
 }

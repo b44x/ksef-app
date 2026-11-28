@@ -82,6 +82,11 @@ final class InvoiceView
                 'accounts' => $invoice->bank_account === null || $invoice->bank_account === '' ? [] : [$invoice->bank_account],
                 'paid' => false,
             ],
+            'remarks' => array_values(array_filter([
+                $invoice->split_payment ? ['label' => 'Split payment (MPP)', 'value' => null] : null,
+                $invoice->cash_accounting ? ['label' => 'Cash accounting', 'value' => null] : null,
+                $invoice->exemption_basis !== null && $invoice->exemption_basis !== '' ? ['label' => 'Basis for the VAT exemption', 'value' => $invoice->exemption_basis] : null,
+            ])),
             'notes' => $invoice->notes,
             'ksef_number' => $invoice->ksef_number,
             'offline' => $invoice->offline_mode !== null,

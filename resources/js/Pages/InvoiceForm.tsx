@@ -24,6 +24,9 @@ interface Props {
         payment_method: string;
         bank_account: string;
         notes: string;
+        split_payment: boolean;
+        cash_accounting: boolean;
+        exemption_basis: string;
         invoice_template_id: string;
         currency: string;
         exchange_rate: string;
@@ -54,10 +57,17 @@ interface Props {
     series: { id: number; name: string }[];
     products: { id: number; name: string; unit: string; net_price: string; vat_rate: string }[];
     currencies: string[];
+    gtuCodes: string[];
     vatRates: string[];
     paymentMethods: { value: string; label: string }[];
     templates: { id: number; name: string; is_default: boolean }[];
-    defaults: { payment_days: number | null; payment_method: string; bank_account: string; notes: string };
+    defaults: {
+        payment_days: number | null;
+        payment_method: string;
+        bank_account: string;
+        notes: string;
+        cash_accounting: boolean;
+    };
     offline: OfflineOptions;
 }
 
@@ -68,7 +78,7 @@ function addDays(day: string, days: number | null): string {
 }
 
 const blankLine: InvoiceLineForm = { name: '', unit: 'szt.', quantity: '1', unit_net_price: '', vat_rate: '23' };
-const columns = 'lg:grid-cols-[2rem_minmax(0,1fr)_5rem_5rem_8rem_5.5rem_7rem_2.25rem]';
+const columns = 'lg:grid-cols-[2rem_minmax(0,1fr)_5rem_5rem_8rem_5.5rem_5.5rem_7rem_2.25rem]';
 
 /** The kinds of document. Only the VAT invoice exists so far; the others are shown so the direction is clear. */
 const kinds = [
@@ -88,6 +98,7 @@ export default function InvoiceForm({
     series,
     products,
     currencies,
+    gtuCodes,
     vatRates,
     paymentMethods,
     templates,
@@ -107,6 +118,9 @@ export default function InvoiceForm({
         bank_account: invoice?.bank_account ?? defaults.bank_account,
         notes: invoice?.notes ?? defaults.notes,
         invoice_template_id: invoice?.invoice_template_id ?? '',
+        split_payment: invoice?.split_payment ?? false,
+        cash_accounting: invoice?.cash_accounting ?? defaults.cash_accounting,
+        exemption_basis: invoice?.exemption_basis ?? '',
         currency: invoice?.currency ?? 'PLN',
         exchange_rate: invoice?.exchange_rate ?? '',
         exchange_rate_date: invoice?.exchange_rate_date ?? '',
@@ -176,7 +190,7 @@ export default function InvoiceForm({
         form.setData('lines', untouched ? [line] : [...form.data.lines, line]);
     };
     const lineError = (index: number) =>
-        ['name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']
+        ['name', 'unit', 'quantity', 'unit_net_price', 'vat_rate', 'gtu']
             .map((f) => errors[`lines.${index}.${f}`])
             .find(Boolean);
 
@@ -453,6 +467,7 @@ export default function InvoiceForm({
                             <span>{t('Qty')}</span>
                             <span>{t('Net price')}</span>
                             <span>{t('VAT')}</span>
+                            <span title={t('Goods and services group (GTU), if the law requires it')}>GTU</span>
                             <span className="text-right">{t('Net value')}</span>
                             <span />
                         </div>
@@ -502,6 +517,18 @@ export default function InvoiceForm({
                                             {vatRates.map((rate) => (
                                                 <option key={rate} value={rate}>
                                                     {rate}
+                                                </option>
+                                            ))}
+                                        </Select>
+                                        <Select
+                                            aria-label="GTU"
+                                            value={line.gtu ?? ''}
+                                            onChange={(e) => setLine(index, { gtu: e.target.value })}
+                                        >
+                                            <option value="">—</option>
+                                            {gtuCodes.map((code) => (
+                                                <option key={code} value={code}>
+                                                    {code.replace('GTU_', '')}
                                                 </option>
                                             ))}
                                         </Select>
@@ -623,6 +650,46 @@ export default function InvoiceForm({
                                             </option>
                                         ))}
                                     </Select>
+                                </Field>
+                            )}
+                            <div className="space-y-2 rounded-lg border border-border p-3">
+                                <label className="flex items-start gap-2 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        className="mt-0.5 size-4 rounded border-border-strong accent-[var(--primary)]"
+                                        checked={form.data.split_payment}
+                                        onChange={(e) => form.setData('split_payment', e.target.checked)}
+                                    />
+                                    <span>
+                                        {t('Split payment (MPP)')}
+                                        <span className="block text-xs text-muted">
+                                            {t('Required for some goods and services above PLN 15,000 gross.')}
+                                        </span>
+                                    </span>
+                                </label>
+                                <label className="flex items-center gap-2 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        className="size-4 rounded border-border-strong accent-[var(--primary)]"
+                                        checked={form.data.cash_accounting}
+                                        onChange={(e) => form.setData('cash_accounting', e.target.checked)}
+                                    />
+                                    {t('Cash accounting (the VAT is due when paid)')}
+                                </label>
+                            </div>
+                            {form.data.lines.some((l) => l.vat_rate === 'zw') && (
+                                <Field
+                                    label={t('Basis for the VAT exemption')}
+                                    hint={t(
+                                        'The provision of the law or the contract, as the exemption (rate "zw") requires.',
+                                    )}
+                                    error={errors.exemption_basis}
+                                >
+                                    <Input
+                                        value={form.data.exemption_basis}
+                                        maxLength={256}
+                                        onChange={(e) => form.setData('exemption_basis', e.target.value)}
+                                    />
                                 </Field>
                             )}
                             <Field label={t('Printed at the bottom of the invoice')} error={errors.notes}>

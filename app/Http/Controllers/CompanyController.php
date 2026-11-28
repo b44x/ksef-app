@@ -39,6 +39,7 @@ class CompanyController extends Controller
                 'payment_method' => $company->default_payment_method === null ? '' : (string) $company->default_payment_method,
                 'bank_account' => $company->default_bank_account ?? '',
                 'notes' => $company->default_notes ?? '',
+                'cash_accounting' => $company->default_cash_accounting,
             ],
             'paymentMethods' => array_map(fn (PaymentMethod $m): array => ['value' => (string) $m->value, 'label' => __(PaymentLabel::of($m))], PaymentMethod::cases()),
             'environments' => array_map(fn (KsefEnvironment $e): array => ['value' => $e->value, 'label' => $e->label()], KsefEnvironment::cases()),
