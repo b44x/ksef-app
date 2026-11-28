@@ -31,6 +31,7 @@ class CompanyController extends Controller
                 'has_secrets' => $company->credentials !== null,
             ],
             'offline' => $company === null ? null : ['has' => $company->offline_certificate !== null, 'expires_at' => $company->offline_certificate_expires_at?->toIso8601String(), 'usable' => $company->canIssueOffline()],
+            'notifications' => $company === null ? null : ['email' => $company->notify_email ?? '', 'offline' => $company->notify_offline, 'purchases' => $company->notify_purchases, 'rejected' => $company->notify_rejected],
             'environments' => array_map(fn (KsefEnvironment $e): array => ['value' => $e->value, 'label' => $e->label()], KsefEnvironment::cases()),
             'methods' => array_map(fn (AuthMethod $m): array => ['value' => $m->value, 'label' => $m->label()], AuthMethod::cases()),
         ]);

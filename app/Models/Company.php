@@ -28,6 +28,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $purchases_synced_until
  * @property Carbon|null $purchases_synced_at
  * @property string|null $purchases_sync_error
+ * @property string|null $notify_email
+ * @property bool $notify_offline
+ * @property bool $notify_purchases
+ * @property bool $notify_rejected
+ * @property Carbon|null $last_digest_at
  */
 #[Fillable(['name', 'nip', 'address_line1', 'address_line2', 'email', 'environment', 'auth_method', 'credentials'])]
 #[Hidden(['credentials', 'offline_certificate'])]
@@ -46,6 +51,10 @@ class Company extends Model
             'offline_certificate_expires_at' => 'datetime',
             'purchases_synced_until' => 'datetime',
             'purchases_synced_at' => 'datetime',
+            'notify_offline' => 'boolean',
+            'notify_purchases' => 'boolean',
+            'notify_rejected' => 'boolean',
+            'last_digest_at' => 'datetime',
         ];
     }
 

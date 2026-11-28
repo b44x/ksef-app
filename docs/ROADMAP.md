@@ -32,6 +32,7 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 ## M5: PDF and polish
 - [x] PDF of issued and received invoices (Polish or English, with the KSeF QR codes)
 - [x] Total failure: issuing outside KSeF without QR codes and certificate (check the delivery rules with the Ministry's announcement)
+- [x] E-mail summary (offline deadlines, new purchases, rejections; MAIL_* in the environment)
 - [ ] UPO as PDF
 - [x] Polish and English interface (more languages: add a JSON file)
 - [ ] Import contractors and products from CSV

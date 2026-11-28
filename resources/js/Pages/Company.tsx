@@ -3,6 +3,7 @@ import { Check, WifiOff } from 'lucide-react';
 import { Button } from '../Components/Button';
 import ConnectionReport from '../Components/ConnectionReport';
 import { Field, Input, Select, Textarea } from '../Components/Form';
+import { type Notifications, NotificationsCard } from '../Components/NotificationsCard';
 import { Alert, Card, PageHeader } from '../Components/Ui';
 import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
@@ -25,11 +26,12 @@ interface Props {
         has_secrets: boolean;
     } | null;
     offline: { has: boolean; expires_at: string | null; usable: boolean } | null;
+    notifications: Notifications | null;
     environments: Option[];
     methods: Option[];
 }
 
-export default function Company({ company, offline, environments, methods }: Props) {
+export default function Company({ company, offline, notifications, environments, methods }: Props) {
     const t = useT();
     const {
         report,
@@ -248,6 +250,8 @@ export default function Company({ company, offline, environments, methods }: Pro
                     </div>
                 </Card>
             )}
+
+            {company && notifications && <NotificationsCard notifications={notifications} />}
 
             {report && (
                 <Card title={t('Connection check')} className="mt-6">

@@ -8,6 +8,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KsefSignInController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\NumberingSeriesController;
 use App\Http\Controllers\OfflineCertificateController;
 use App\Http\Controllers\ProductController;
@@ -33,6 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/company/signin/request.xml', [KsefSignInController::class, 'download'])->name('signin.download');
     Route::post('/company/signin/complete', [KsefSignInController::class, 'complete'])->name('signin.complete');
     Route::delete('/company/signin', [KsefSignInController::class, 'destroy'])->name('signin.destroy');
+    Route::put('/company/notifications', [NotificationSettingsController::class, 'update'])->name('notifications.update');
+    Route::post('/company/notifications/test', [NotificationSettingsController::class, 'test'])->name('notifications.test');
     Route::post('/company/offline-certificate', [OfflineCertificateController::class, 'store'])->name('offline-certificate.store');
     Route::delete('/company/offline-certificate', [OfflineCertificateController::class, 'destroy'])->name('offline-certificate.destroy');
     Route::post('/company/check', [ConnectionCheckController::class, 'store'])->name('company.check');
