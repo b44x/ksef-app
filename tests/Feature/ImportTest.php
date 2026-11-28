@@ -45,7 +45,8 @@ class ImportTest extends TestCase
         $this->company->contractors()->create(['name' => 'Old name', 'nip' => '7762811692', 'country' => 'PL', 'address_line1' => 'Old street']);
         $file = $this->csv("name,nip,country,address,email\nNew name,7762811692,PL,New street 1,\n,5260250995,PL,No name here,\nBad NIP,1234567890,PL,Street,\nNo address,,PL,,\nBad mail,,PL,Street,not-an-address\n");
 
-        $result = $this->post('/contractors/import', ['file' => $file])->getSession()->get('import');
+        $this->post('/contractors/import', ['file' => $file]);
+        $result = session('import');
 
         $this->assertSame(1, $result['updated']);
         $this->assertSame(0, $result['created']);
@@ -68,7 +69,8 @@ class ImportTest extends TestCase
     {
         $file = $this->csv("Nazwa;J.m.;Cena netto;Stawka VAT\nKonsultacje IT;godz.;\"1 234,50\";23%\nKsiążka;;79;5\nUsługa zwolniona;szt.;10;ZW\nZły towar;szt.;abc;23\nZła stawka;szt.;10;99\n");
 
-        $result = $this->post('/products/import', ['file' => $file])->getSession()->get('import');
+        $this->post('/products/import', ['file' => $file]);
+        $result = session('import');
 
         $this->assertSame(3, $result['created']);
         $this->assertSame([5, 6], array_column($result['errors'], 'line'));
