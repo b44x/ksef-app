@@ -68,6 +68,7 @@ final class IssueInvoice
                 'net_total' => $totals['net'],
                 'vat_total' => $totals['vat'],
                 'gross_total' => $totals['gross'],
+                'vat_summary' => $totals['buckets'],
                 'number' => $number,
                 'xml' => $issued['xml'],
                 'snapshot' => $this->snapshot($invoice),

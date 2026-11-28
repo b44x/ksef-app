@@ -105,6 +105,10 @@ class PaymentTest extends TestCase
         $this->post("/invoices/{$late->id}/payments/settle");
         $this->assertFalse($late->fresh()->isOverdue());
         $this->assertFalse($this->draft('2020-01-01')->fresh()->isOverdue(), 'A draft is never late.');
+
+        $refused = $this->issued('2020-01-01');
+        $refused->forceFill(['status' => 'rejected'])->save();
+        $this->assertFalse($refused->fresh()->isOverdue(), 'An invoice KSeF refused is not owed.');
     }
 
     public function test_a_draft_takes_no_payments_and_other_companies_cannot_touch_them(): void

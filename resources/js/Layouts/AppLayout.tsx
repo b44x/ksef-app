@@ -1,5 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import {
+    BarChart3,
     Building2,
     FilePlus2,
     FileText,
@@ -26,6 +27,7 @@ const nav = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { href: '/invoices', label: 'Invoices', icon: FileText },
     { href: '/purchases', label: 'Purchases', icon: Inbox, badge: true },
+    { href: '/reports', label: 'Reports', icon: BarChart3 },
     { href: '/contractors', label: 'Contractors', icon: Users },
     { href: '/products', label: 'Products', icon: Package },
     { href: '/series', label: 'Numbering', icon: Hash },

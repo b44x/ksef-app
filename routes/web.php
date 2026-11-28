@@ -16,6 +16,7 @@ use App\Http\Controllers\OfflineCertificateController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\TemplateController;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/company/signin', [KsefSignInController::class, 'destroy'])->name('signin.destroy');
     Route::post('/company/logo', [LogoController::class, 'store'])->name('logo.store');
     Route::delete('/company/logo', [LogoController::class, 'destroy'])->name('logo.destroy');
+    Route::get('/reports', [ReportController::class, 'show'])->name('reports.show');
+    Route::get('/reports/sales.csv', [ReportController::class, 'register'])->name('reports.register');
     Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
     Route::post('/templates', [TemplateController::class, 'store'])->name('templates.store');
     Route::post('/templates/preview', [TemplateController::class, 'preview'])->name('templates.preview');

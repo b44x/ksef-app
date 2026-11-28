@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\InvoiceStatus;
 use App\Invoicing\InvoiceRow;
 use App\Models\Company;
+use App\Reports\SalesReport;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,7 +22,15 @@ class DashboardController extends Controller
 
         $recent = $company->invoices()->with(['contractor:id,name', 'lines'])->withSum('payments', 'amount')->orderByDesc('issue_date')->orderByDesc('id')->limit(5)->get();
 
+        $report = new SalesReport($company);
+        $month = CarbonImmutable::today();
+
         return Inertia::render('Dashboard', [
+            'kpi' => [
+                'sales' => $report->totals($month->startOfMonth(), $month->endOfMonth()),
+                'receivables' => $report->receivables(),
+                'monthly' => $report->monthly($month),
+            ],
             'stats' => [
                 'drafts' => $company->invoices()->where('status', InvoiceStatus::Draft)->count(),
                 'contractors' => $company->contractors()->count(),

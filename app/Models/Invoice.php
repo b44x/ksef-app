@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $net_total
  * @property string|null $vat_total
  * @property string|null $gross_total
+ * @property list<array{rate: string, net: string, vat: string|null, gross: string}>|null $vat_summary
  * @property string|null $xml
  * @property array{seller: array<string, string|null>, buyer: array<string, string|null>}|null $snapshot
  * @property Carbon|null $issued_at
@@ -67,6 +68,7 @@ class Invoice extends Model
             'net_total' => 'decimal:2',
             'vat_total' => 'decimal:2',
             'gross_total' => 'decimal:2',
+            'vat_summary' => 'array',
             'snapshot' => 'array',
             'issued_at' => 'datetime',
             'offline_mode' => OfflineMode::class,
@@ -146,10 +148,16 @@ class Invoice extends Model
         return $this->outstanding()->isZero() ? PaymentStatus::Paid : PaymentStatus::Partial;
     }
 
-    /** Past the due date and not paid in full. Drafts and invoices without a due date are never late. */
+    /** A sale that is owed money: not a draft, and not one KSeF refused. */
+    public function isSale(): bool
+    {
+        return ! $this->isDraft() && $this->status !== InvoiceStatus::Rejected;
+    }
+
+    /** Past the due date and not paid in full. Only sales can be late, and only with a due date. */
     public function isOverdue(): bool
     {
-        return ! $this->isDraft()
+        return $this->isSale()
             && $this->due_date !== null
             && $this->due_date->endOfDay()->isPast()
             && ! $this->outstanding()->isZero();

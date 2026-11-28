@@ -18,7 +18,7 @@ final class InvoiceRow
             $invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all(),
             $invoice->currency,
         )['gross'];
-        $issued = ! $invoice->isDraft();
+        $issued = $invoice->isSale();
 
         return [
             'id' => $invoice->id,

@@ -41,6 +41,7 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Invoice templates: editor with live PDF preview, three layouts, colour, font, logo, visible parts, saved templates, per-invoice choice
 
 - [x] Payments: register of payments, paid / partly paid / overdue, one-click "paid", invoice list filters and search
+- [x] Dashboard and reports: sales by month, VAT by rate, top customers, receivables ageing, sales register CSV
 
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)

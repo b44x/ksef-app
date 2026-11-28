@@ -23,6 +23,10 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 | ![Offline invoice](docs/screenshots/27-invoice-offline.png) | ![Offline dialog](docs/screenshots/28-issue-offline-dialog.png) |
 | **The printed invoice (PDF), in Polish or English** | **Three layouts, your colour, font and logo** |
 | ![PDF](docs/screenshots/29-invoice-pdf.png) | ![Templates](docs/screenshots/30-invoice-templates.png) |
+| **Dashboard: sales, receivables, overdue** | **Reports: VAT by rate, customers, ageing** |
+| ![Dashboard](docs/screenshots/31-dashboard.png) | ![Reports](docs/screenshots/32-reports.png) |
+| **Invoices with payment state, filters and search** | |
+| ![Invoices](docs/screenshots/33-invoice-list.png) | |
 
 The totals next to the lines are computed by the SDK as you type, never in the browser.
 
@@ -39,6 +43,8 @@ The totals next to the lines are computed by the SDK as you type, never in the b
   (in the app and by a daily e-mail) until they are delivered.
 - **Print** any issued or received invoice as a PDF, in Polish or English, with the KSeF QR codes; design your own
   templates (layout, colour, font, logo, what is shown) in an editor with a live preview.
+- **Follow the money**: payments per invoice, paid / partly paid / overdue, receivables ageing.
+- **Report**: sales by month, VAT by rate, top customers, and the sales register as a CSV file for your accountant.
 - **Import** contractors and products from a CSV file (the format Excel saves).
 - **Run anywhere**: in a browser (Docker, a server, a NAS) first; as a desktop app for Windows and macOS from the same code.
 

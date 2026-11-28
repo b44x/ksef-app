@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
-import { FilePlus2, FileText, Package, PlugZap, Send, Users } from 'lucide-react';
+import { AlertTriangle, FilePlus2, FileText, PlugZap, Send, TrendingUp, Wallet } from 'lucide-react';
+import { BarChart, type MonthPoint } from '../Components/BarChart';
 import { Alert, Badge, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
 import { Button, ButtonLink } from '../Components/Button';
 import ConnectionReport from '../Components/ConnectionReport';
@@ -9,6 +10,11 @@ import { useMoney } from '../lib/format';
 import type { SharedProps } from '../types';
 
 interface Props {
+    kpi: {
+        sales: { currency: string; count: number; net: string; vat: string; gross: string }[];
+        receivables: { currency: string; count: number; outstanding: string; overdue: string; overdue_count: number }[];
+        monthly: MonthPoint[];
+    };
     stats: { drafts: number; contractors: number; products: number };
     offline: { waiting: number; overdue: number; next_deadline: string | null; undated: number } | null;
     recent: {
@@ -23,24 +29,38 @@ interface Props {
     details: { name: string; nip: string; environment: string; environment_key: string; auth_method: string };
 }
 
-function Stat({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: number; href: string }) {
+function Stat({
+    icon,
+    label,
+    value,
+    href,
+    tone = 'primary',
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: string | number;
+    href: string;
+    tone?: 'primary' | 'danger';
+}) {
     return (
         <a
             href={href}
             className="flex items-center gap-4 rounded-xl border border-border bg-surface p-5 shadow-card transition-colors hover:border-border-strong"
         >
-            <div className="flex size-11 items-center justify-center rounded-lg bg-primary-soft text-primary">
+            <div
+                className={`flex size-11 items-center justify-center rounded-lg ${tone === 'danger' ? 'bg-danger-soft text-danger' : 'bg-primary-soft text-primary'}`}
+            >
                 {icon}
             </div>
             <div>
-                <div className="text-2xl font-semibold tabular-nums">{value}</div>
+                <div className="whitespace-nowrap text-xl font-semibold tabular-nums">{value}</div>
                 <div className="text-sm text-muted">{label}</div>
             </div>
         </a>
     );
 }
 
-export default function Dashboard({ stats, offline, recent, details }: Props) {
+export default function Dashboard({ kpi, stats, offline, recent, details }: Props) {
     const t = useT();
     const money = useMoney();
     const { report, locale } = usePage<SharedProps>().props;
@@ -96,29 +116,47 @@ export default function Dashboard({ stats, offline, recent, details }: Props) {
                 </div>
             )}
 
-            <div className="mb-6 grid gap-4 sm:grid-cols-3">
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat
+                    icon={<TrendingUp className="size-5" />}
+                    label={t('Net sales this month')}
+                    value={money(kpi.sales.find((s) => s.currency === 'PLN')?.net ?? '0', 'PLN')}
+                    href="/reports"
+                />
+                <Stat
+                    icon={<Wallet className="size-5" />}
+                    label={t('You are owed')}
+                    value={money(kpi.receivables.find((r) => r.currency === 'PLN')?.outstanding ?? '0', 'PLN')}
+                    href="/invoices"
+                />
+                <Stat
+                    icon={<AlertTriangle className="size-5" />}
+                    label={t('Overdue')}
+                    value={money(kpi.receivables.find((r) => r.currency === 'PLN')?.overdue ?? '0', 'PLN')}
+                    href="/invoices"
+                    tone={
+                        (kpi.receivables.find((r) => r.currency === 'PLN')?.overdue_count ?? 0) > 0
+                            ? 'danger'
+                            : 'primary'
+                    }
+                />
                 <Stat
                     icon={<FileText className="size-5" />}
                     label={t('Drafts')}
                     value={stats.drafts}
                     href="/invoices"
                 />
-                <Stat
-                    icon={<Users className="size-5" />}
-                    label={t('Contractors')}
-                    value={stats.contractors}
-                    href="/contractors"
-                />
-                <Stat
-                    icon={<Package className="size-5" />}
-                    label={t('Products')}
-                    value={stats.products}
-                    href="/products"
-                />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-5">
-                <Card title={t('Recent invoices')} className="lg:col-span-3">
+            <div className="mb-6 grid gap-6 lg:grid-cols-5">
+                <Card
+                    title={t('Net sales by month')}
+                    description={t('The last twelve months, in PLN.')}
+                    className="lg:col-span-3"
+                >
+                    <BarChart data={kpi.monthly} currency="PLN" label={t('Net sales by month')} />
+                </Card>
+                <Card title={t('Recent invoices')} className="lg:col-span-5 lg:order-last">
                     {recent.length === 0 ? (
                         <EmptyState
                             icon={<FileText className="size-6" />}
