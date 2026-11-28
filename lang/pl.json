@@ -556,5 +556,11 @@
     "Sent by e-mail": "Wysłano e-mailem",
     "Invoice :number from :company": "Faktura :number od :company",
     "Hello,\n\nPlease find invoice :number attached.\n\nBest regards,\n:company": "Dzień dobry,\n\nw załączeniu przesyłam fakturę :number.\n\nPozdrawiam,\n:company",
-    "The invoice was sent to :address.": "Faktura została wysłana na adres :address."
+    "The invoice was sent to :address.": "Faktura została wysłana na adres :address.",
+    "The register could not be reached.": "Nie udało się połączyć z rejestrem.",
+    "The register did not answer properly (:status).": "Rejestr nie odpowiedział poprawnie (:status).",
+    "No taxpayer with this NIP was found in the register.": "W rejestrze nie ma podatnika o tym NIP.",
+    "VAT status": "Status VAT",
+    "Found in the register.": "Znaleziono w rejestrze.",
+    "Fetch": "Pobierz"
 }

@@ -49,6 +49,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Invoice by e-mail: PDF attached, message editable, remembered on the invoice
 - [x] Invoice defaults (payment term, method, bank account, notes)
 
+- [x] Contractor data by NIP from the Ministry of Finance VAT register (white list); VAT status shown. Unverified against the live API from the build sandbox (the register blocks datacenter addresses): check on a real machine
+
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)
 - [ ] Manual check that the installers start and work on real Windows and macOS machines

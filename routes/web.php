@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/company/offline-certificate', [OfflineCertificateController::class, 'store'])->name('offline-certificate.store');
     Route::delete('/company/offline-certificate', [OfflineCertificateController::class, 'destroy'])->name('offline-certificate.destroy');
     Route::post('/company/check', [ConnectionCheckController::class, 'store'])->name('company.check');
+    Route::get('/contractors/lookup', [ContractorController::class, 'lookup'])->name('contractors.lookup');
     Route::post('/contractors/import', [ImportController::class, 'contractors'])->name('contractors.import');
     Route::post('/products/import', [ImportController::class, 'products'])->name('products.import');
     Route::get('/contractors', [ContractorController::class, 'index'])->name('contractors.index');

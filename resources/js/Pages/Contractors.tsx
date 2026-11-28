@@ -1,12 +1,12 @@
 import { router, useForm } from '@inertiajs/react';
-import { Plus, Upload, Users } from 'lucide-react';
+import { Loader2, Plus, Search, Upload, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../Components/Button';
 import { Dialog } from '../Components/Dialog';
 import { ImportDialog } from '../Components/ImportDialog';
 import { Field, Input } from '../Components/Form';
 import { RowActions } from '../Components/RowActions';
-import { Card, EmptyState, PageHeader, Table } from '../Components/Ui';
+import { Alert, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
 import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
 
@@ -28,6 +28,45 @@ export default function Contractors({ contractors }: { contractors: Contractor[]
     const [importing, setImporting] = useState(false);
     const [editing, setEditing] = useState<number | null>(null);
     const form = useForm(empty);
+    const [lookup, setLookup] = useState<{ busy: boolean; message: string | null; tone: 'success' | 'warning' }>({
+        busy: false,
+        message: null,
+        tone: 'success',
+    });
+
+    /** Fills the form from the Ministry of Finance's register. Only what it returns; the rest stays as typed. */
+    const fetchFromRegister = async () => {
+        setLookup({ busy: true, message: null, tone: 'success' });
+        try {
+            const response = await fetch(`/contractors/lookup?nip=${encodeURIComponent(form.data.nip)}`, {
+                headers: { Accept: 'application/json' },
+            });
+            const body = await response.json();
+            if (!response.ok) {
+                setLookup({
+                    busy: false,
+                    message: body.message ?? t('The register could not be reached.'),
+                    tone: 'warning',
+                });
+                return;
+            }
+            form.setData({
+                ...form.data,
+                name: body.name,
+                nip: body.nip,
+                country: 'PL',
+                address_line1: body.address_line1,
+                address_line2: body.address_line2,
+            });
+            setLookup({
+                busy: false,
+                message: body.vat_status ? `${t('VAT status')}: ${body.vat_status}` : t('Found in the register.'),
+                tone: body.vat_status === 'Czynny' ? 'success' : 'warning',
+            });
+        } catch {
+            setLookup({ busy: false, message: t('The register could not be reached.'), tone: 'warning' });
+        }
+    };
 
     const close = () => {
         setOpen(false);
@@ -142,12 +181,27 @@ export default function Contractors({ contractors }: { contractors: Contractor[]
                             className="sm:col-span-2"
                             hint={t('Leave empty for foreign buyers and consumers.')}
                         >
-                            <Input inputMode="numeric" value={form.data.nip} onChange={set('nip')} />
+                            <div className="flex gap-2">
+                                <Input inputMode="numeric" value={form.data.nip} onChange={set('nip')} />
+                                <Button
+                                    variant="secondary"
+                                    onClick={fetchFromRegister}
+                                    disabled={lookup.busy || form.data.nip.replace(/\D/g, '').length !== 10}
+                                >
+                                    {lookup.busy ? (
+                                        <Loader2 className="size-4 animate-spin" />
+                                    ) : (
+                                        <Search className="size-4" />
+                                    )}
+                                    {t('Fetch')}
+                                </Button>
+                            </div>
                         </Field>
                         <Field label={t('Country (two letters)')} error={form.errors.country}>
                             <Input maxLength={2} value={form.data.country} onChange={set('country')} />
                         </Field>
                     </div>
+                    {lookup.message && <Alert tone={lookup.tone}>{lookup.message}</Alert>}
                     <Field label={t('Address')} error={form.errors.address_line1}>
                         <Input value={form.data.address_line1} onChange={set('address_line1')} />
                     </Field>
