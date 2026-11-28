@@ -9,7 +9,7 @@ use App\Models\Invoice;
 final class InvoiceRow
 {
     /**
-     * @return array{id: int, number: string|null, status: string, status_label: string, status_tone: string, offline: bool, offline_deadline: string|null, issue_date: string, contractor: string, currency: string, gross: string, payment_status: string|null, payment_label: string|null, payment_tone: string|null, outstanding: string|null, due_date: string|null, overdue: bool, is_correction: bool}
+     * @return array{id: int, number: string|null, status: string, status_label: string, status_tone: string, offline: bool, offline_deadline: string|null, issue_date: string, contractor: string, currency: string, gross: string, payment_status: string|null, payment_label: string|null, payment_tone: string|null, outstanding: string|null, due_date: string|null, overdue: bool, is_correction: bool, is_proforma: bool}
      */
     public static function of(Invoice $invoice): array
     {
@@ -39,6 +39,7 @@ final class InvoiceRow
             'due_date' => $invoice->due_date?->toDateString(),
             'overdue' => $invoice->isOverdue(),
             'is_correction' => $invoice->isCorrection(),
+            'is_proforma' => $invoice->isProforma(),
         ];
     }
 }

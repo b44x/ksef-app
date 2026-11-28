@@ -57,7 +57,8 @@ final class InvoiceView
         unset($line);
 
         return [
-            'title' => $invoice->isCorrection() ? 'Correction invoice' : 'VAT invoice',
+            'title' => $invoice->isProforma() ? 'Proforma invoice' : ($invoice->isCorrection() ? 'Correction invoice' : 'VAT invoice'),
+            'proforma' => $invoice->isProforma(),
             'number' => (string) $invoice->number,
             'issue_date' => $invoice->issue_date->toDateString(),
             'sale_date' => $invoice->sale_date?->toDateString(),

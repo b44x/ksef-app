@@ -28,14 +28,17 @@ interface Row {
     due_date: string | null;
     overdue: boolean;
     is_correction: boolean;
+    is_proforma: boolean;
 }
 
-type Filter = 'all' | 'draft' | 'unpaid' | 'overdue' | 'paid' | 'problems';
+type Filter = 'all' | 'draft' | 'unpaid' | 'overdue' | 'paid' | 'problems' | 'proforma';
 
 const matches = (row: Row, filter: Filter): boolean => {
     switch (filter) {
         case 'draft':
             return row.status === 'draft';
+        case 'proforma':
+            return row.is_proforma;
         case 'unpaid':
             return row.status !== 'draft' && row.payment_status !== 'paid';
         case 'overdue':
@@ -62,6 +65,7 @@ export default function Invoices({ invoices }: { invoices: Row[] }) {
         { key: 'overdue', label: t('Overdue') },
         { key: 'paid', label: t('Paid') },
         { key: 'problems', label: t('Needs attention') },
+        { key: 'proforma', label: t('Proforma') },
     ];
 
     const visible = useMemo(() => {

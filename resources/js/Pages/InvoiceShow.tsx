@@ -5,6 +5,7 @@ import {
     Copy,
     CopyPlus,
     Download,
+    FileCheck2,
     FilePenLine,
     Mail,
     Repeat,
@@ -28,6 +29,9 @@ import type { InvoiceLineForm, SharedProps, TotalsPreview } from '../types';
 
 interface Props {
     invoice: {
+        kind: string;
+        converted_from: { id: number; number: string } | null;
+        converted_to: { id: number; number: string | null }[];
         id: number;
         number: string;
         status: string;
@@ -169,6 +173,7 @@ export default function InvoiceShow({
 
     const send = () => router.post(`/invoices/${invoice.id}/send`);
     const [anchor, setAnchor] = useState('');
+    const proforma = invoice.kind === 'proforma';
     const [repeating, setRepeating] = useState(false);
     const [emailing, setEmailing] = useState(false);
     const when = (iso: string) =>
@@ -179,7 +184,13 @@ export default function InvoiceShow({
             <PageHeader
                 title={invoice.number}
                 badge={<Badge tone={invoice.status_tone}>{invoice.status_label}</Badge>}
-                description={t('Issued invoices cannot be changed. The FA(3) document below is what KSeF receives.')}
+                description={
+                    proforma
+                        ? t(
+                              'A proforma is not a VAT invoice and is never sent to KSeF. Make the VAT invoice from it when the sale happens.',
+                          )
+                        : t('Issued invoices cannot be changed. The FA(3) document below is what KSeF receives.')
+                }
                 actions={
                     <>
                         <ButtonLink href="/invoices" variant="secondary">
@@ -198,19 +209,27 @@ export default function InvoiceShow({
                                 {t('Issue a correction')}
                             </Button>
                         )}
-                        {!correction.of && (
+                        {proforma && (
+                            <Button onClick={() => router.post(`/invoices/${invoice.id}/convert`)}>
+                                <FileCheck2 className="size-4" />
+                                {invoice.converted_to.length > 0 ? t('Open the VAT invoice') : t('Make a VAT invoice')}
+                            </Button>
+                        )}
+                        {!correction.of && !proforma && (
                             <Button variant="secondary" onClick={() => setRepeating(true)}>
                                 <Repeat className="size-4" />
                                 {t('Repeat')}
                             </Button>
                         )}
-                        <a href={`/invoices/${invoice.id}/xml`} download>
-                            <Button variant="secondary">
-                                <Download className="size-4" />
-                                {t('Download XML')}
-                            </Button>
-                        </a>
-                        {invoice.status === 'issued' && (
+                        {!proforma && (
+                            <a href={`/invoices/${invoice.id}/xml`} download>
+                                <Button variant="secondary">
+                                    <Download className="size-4" />
+                                    {t('Download XML')}
+                                </Button>
+                            </a>
+                        )}
+                        {invoice.status === 'issued' && !proforma && (
                             <Button onClick={send} disabled={!canSend}>
                                 <Send className="size-4" />
                                 {offline ? t('Deliver to KSeF') : t('Send to KSeF')}
@@ -226,118 +245,133 @@ export default function InvoiceShow({
                 }
             />
 
-            <Card title={t('Delivery to KSeF')} className="mb-6">
-                <div className="space-y-4">
-                    {offline && invoice.status === 'issued' && (
-                        <Alert tone={offline.overdue ? 'danger' : 'warning'}>
-                            <div className="font-medium">
-                                {t('Issued offline')}: {offline.label}
-                            </div>
-                            {offline.deadline ? (
-                                <div>
-                                    {offline.overdue
-                                        ? t('The delivery deadline passed on :date. Deliver it to KSeF now.', {
-                                              date: when(offline.deadline),
-                                          })
-                                        : t('Deliver it to KSeF by the end of :date.', {
-                                              date: when(offline.deadline),
-                                          })}
-                                </div>
-                            ) : (
-                                <form
-                                    className="mt-2 flex flex-wrap items-end gap-2"
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        router.post(`/invoices/${invoice.id}/offline-anchor`, { anchor_date: anchor });
-                                    }}
-                                >
-                                    <label className="text-sm">
-                                        <span className="mb-1 block">
-                                            {t('The deadline counts from the day KSeF is back. When did it end?')}
-                                        </span>
-                                        <input
-                                            type="date"
-                                            required
-                                            value={anchor}
-                                            onChange={(e) => setAnchor(e.target.value)}
-                                            className="h-9 rounded-lg border border-border-strong bg-surface px-2 text-sm text-text"
-                                        />
-                                    </label>
-                                    <Button type="submit" size="sm" variant="secondary" disabled={anchor === ''}>
-                                        {t('Set the deadline')}
-                                    </Button>
-                                </form>
-                            )}
-                            {errors.anchor_date && <div className="mt-1 text-xs">{errors.anchor_date}</div>}
-                        </Alert>
-                    )}
-                    {offline && invoice.status !== 'issued' && (
-                        <p className="text-sm text-muted">
-                            {t('Issued offline')}: {offline.label}
-                        </p>
-                    )}
-
-                    <Delivery invoice={invoice} />
-
-                    {invoice.ksef.number && (
-                        <div className="flex flex-wrap items-center gap-3 rounded-lg bg-success-soft px-4 py-3 text-sm">
-                            <span className="text-success">{t('KSeF number')}</span>
-                            <code className="font-mono font-medium text-text">{invoice.ksef.number}</code>
-                            <button
-                                type="button"
-                                onClick={() => navigator.clipboard?.writeText(invoice.ksef.number ?? '')}
-                                title={t('Copy')}
-                                aria-label={t('Copy')}
-                                className="rounded p-1 text-success hover:bg-success/10"
-                            >
-                                <Copy className="size-4" />
-                            </button>
-                            {invoice.status === 'accepted' && (
-                                <a
-                                    href={`/invoices/${invoice.id}/upo`}
-                                    download
-                                    className="ml-auto inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
-                                >
-                                    <Download className="size-4" />
-                                    {t('Download UPO')}
-                                </a>
-                            )}
-                        </div>
-                    )}
-
-                    {sending && !invoice.ksef.error && (
-                        <p className="text-sm text-muted">
-                            {t('KSeF is checking the invoice. This page updates by itself.')}
-                        </p>
-                    )}
-
-                    {invoice.status === 'issued' && needsSigning && (
-                        <Alert tone="info">
-                            {t('Sign in to KSeF first: the signed login has expired or was never made.')}{' '}
-                            <a href="/company/signin" className="font-medium underline">
-                                {t('Sign in to KSeF')}
-                            </a>
-                        </Alert>
-                    )}
-
-                    {(invoice.ksef.error || errors.send) && (
-                        <Alert tone={invoice.status === 'rejected' ? 'danger' : 'warning'}>
-                            <div className="whitespace-pre-line">{invoice.ksef.error ?? errors.send}</div>
-                        </Alert>
-                    )}
-
-                    {invoice.ksef.can_check && (
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => router.post(`/invoices/${invoice.id}/check`)}
-                        >
-                            <RefreshCw className="size-4" />
-                            {t('Check status')}
-                        </Button>
-                    )}
+            {invoice.converted_from && (
+                <div className="mb-6">
+                    <Alert tone="info">
+                        {t('Made from the proforma')}{' '}
+                        <a href={`/invoices/${invoice.converted_from.id}`} className="font-medium underline">
+                            {invoice.converted_from.number}
+                        </a>
+                    </Alert>
                 </div>
-            </Card>
+            )}
+
+            {!proforma && (
+                <Card title={t('Delivery to KSeF')} className="mb-6">
+                    <div className="space-y-4">
+                        {offline && invoice.status === 'issued' && (
+                            <Alert tone={offline.overdue ? 'danger' : 'warning'}>
+                                <div className="font-medium">
+                                    {t('Issued offline')}: {offline.label}
+                                </div>
+                                {offline.deadline ? (
+                                    <div>
+                                        {offline.overdue
+                                            ? t('The delivery deadline passed on :date. Deliver it to KSeF now.', {
+                                                  date: when(offline.deadline),
+                                              })
+                                            : t('Deliver it to KSeF by the end of :date.', {
+                                                  date: when(offline.deadline),
+                                              })}
+                                    </div>
+                                ) : (
+                                    <form
+                                        className="mt-2 flex flex-wrap items-end gap-2"
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            router.post(`/invoices/${invoice.id}/offline-anchor`, {
+                                                anchor_date: anchor,
+                                            });
+                                        }}
+                                    >
+                                        <label className="text-sm">
+                                            <span className="mb-1 block">
+                                                {t('The deadline counts from the day KSeF is back. When did it end?')}
+                                            </span>
+                                            <input
+                                                type="date"
+                                                required
+                                                value={anchor}
+                                                onChange={(e) => setAnchor(e.target.value)}
+                                                className="h-9 rounded-lg border border-border-strong bg-surface px-2 text-sm text-text"
+                                            />
+                                        </label>
+                                        <Button type="submit" size="sm" variant="secondary" disabled={anchor === ''}>
+                                            {t('Set the deadline')}
+                                        </Button>
+                                    </form>
+                                )}
+                                {errors.anchor_date && <div className="mt-1 text-xs">{errors.anchor_date}</div>}
+                            </Alert>
+                        )}
+                        {offline && invoice.status !== 'issued' && (
+                            <p className="text-sm text-muted">
+                                {t('Issued offline')}: {offline.label}
+                            </p>
+                        )}
+
+                        <Delivery invoice={invoice} />
+
+                        {invoice.ksef.number && (
+                            <div className="flex flex-wrap items-center gap-3 rounded-lg bg-success-soft px-4 py-3 text-sm">
+                                <span className="text-success">{t('KSeF number')}</span>
+                                <code className="font-mono font-medium text-text">{invoice.ksef.number}</code>
+                                <button
+                                    type="button"
+                                    onClick={() => navigator.clipboard?.writeText(invoice.ksef.number ?? '')}
+                                    title={t('Copy')}
+                                    aria-label={t('Copy')}
+                                    className="rounded p-1 text-success hover:bg-success/10"
+                                >
+                                    <Copy className="size-4" />
+                                </button>
+                                {invoice.status === 'accepted' && (
+                                    <a
+                                        href={`/invoices/${invoice.id}/upo`}
+                                        download
+                                        className="ml-auto inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
+                                    >
+                                        <Download className="size-4" />
+                                        {t('Download UPO')}
+                                    </a>
+                                )}
+                            </div>
+                        )}
+
+                        {sending && !invoice.ksef.error && (
+                            <p className="text-sm text-muted">
+                                {t('KSeF is checking the invoice. This page updates by itself.')}
+                            </p>
+                        )}
+
+                        {invoice.status === 'issued' && needsSigning && (
+                            <Alert tone="info">
+                                {t('Sign in to KSeF first: the signed login has expired or was never made.')}{' '}
+                                <a href="/company/signin" className="font-medium underline">
+                                    {t('Sign in to KSeF')}
+                                </a>
+                            </Alert>
+                        )}
+
+                        {(invoice.ksef.error || errors.send) && (
+                            <Alert tone={invoice.status === 'rejected' ? 'danger' : 'warning'}>
+                                <div className="whitespace-pre-line">{invoice.ksef.error ?? errors.send}</div>
+                            </Alert>
+                        )}
+
+                        {invoice.ksef.can_check && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => router.post(`/invoices/${invoice.id}/check`)}
+                            >
+                                <RefreshCw className="size-4" />
+                                {t('Check status')}
+                            </Button>
+                        )}
+                    </div>
+                </Card>
+            )}
 
             <div className="rounded-xl border border-border bg-surface shadow-card">
                 <div className="grid gap-4 border-b border-border p-6 sm:grid-cols-3">
@@ -528,7 +562,9 @@ export default function InvoiceShow({
                 </Card>
             )}
 
-            <PaymentsCard invoiceId={invoice.id} currency={invoice.currency} payment={payment} today={today} />
+            {!proforma && (
+                <PaymentsCard invoiceId={invoice.id} currency={invoice.currency} payment={payment} today={today} />
+            )}
 
             {qr && (
                 <Card
@@ -565,11 +601,17 @@ export default function InvoiceShow({
                 </Card>
             )}
 
-            <Card title={t('FA(3) document')} description={t('The exact XML that is sent to KSeF.')} className="mt-6">
-                <pre className="max-h-96 overflow-auto rounded-lg bg-surface-muted p-4 font-mono text-xs leading-relaxed">
-                    {invoice.xml}
-                </pre>
-            </Card>
+            {!proforma && (
+                <Card
+                    title={t('FA(3) document')}
+                    description={t('The exact XML that is sent to KSeF.')}
+                    className="mt-6"
+                >
+                    <pre className="max-h-96 overflow-auto rounded-lg bg-surface-muted p-4 font-mono text-xs leading-relaxed">
+                        {invoice.xml}
+                    </pre>
+                </Card>
+            )}
         </AppLayout>
     );
 }

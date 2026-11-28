@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/payments/settle', [PaymentController::class, 'settle'])->name('payments.settle');
     Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
     Route::get('/rates', [InvoiceController::class, 'rate'])->name('rates.show');
+    Route::post('/invoices/{invoice}/convert', [InvoiceController::class, 'convert'])->name('invoices.convert');
     Route::post('/invoices/{invoice}/correct', [InvoiceController::class, 'correct'])->name('invoices.correct');
     Route::post('/invoices/{invoice}/email', [InvoiceEmailController::class, 'store'])->name('invoices.email');
     Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');

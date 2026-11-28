@@ -12,6 +12,7 @@ import { useMoney } from '../lib/format';
 import type { InvoiceLineForm } from '../types';
 
 interface Props {
+    kind: string;
     invoice: {
         id: number;
         number: string | null;
@@ -72,12 +73,13 @@ const columns = 'lg:grid-cols-[2rem_minmax(0,1fr)_5rem_5rem_8rem_5.5rem_7rem_2.2
 /** The kinds of document. Only the VAT invoice exists so far; the others are shown so the direction is clear. */
 const kinds = [
     { key: 'vat', label: 'VAT invoice', enabled: true },
-    { key: 'proforma', label: 'Proforma', enabled: false },
+    { key: 'proforma', label: 'Proforma', enabled: true },
     { key: 'advance', label: 'Advance invoice', enabled: false },
     { key: 'margin', label: 'Margin', enabled: false },
 ];
 
 export default function InvoiceForm({
+    kind: documentKind,
     invoice,
     seller,
     today,
@@ -95,6 +97,7 @@ export default function InvoiceForm({
     const t = useT();
     const money = useMoney();
     const form = useForm({
+        kind: documentKind,
         contractor_id: invoice?.contractor_id ?? ('' as number | ''),
         numbering_series_id: invoice?.numbering_series_id ?? defaultSeriesId ?? ('' as number | ''),
         issue_date: invoice?.issue_date ?? today,
@@ -201,7 +204,13 @@ export default function InvoiceForm({
     return (
         <AppLayout>
             <PageHeader
-                title={invoice ? invoice.preview_number : t('New invoice')}
+                title={
+                    invoice
+                        ? invoice.preview_number
+                        : documentKind === 'proforma'
+                          ? t('New proforma')
+                          : t('New invoice')
+                }
                 badge={<Badge tone="warning">{t('Draft')}</Badge>}
                 actions={
                     <>
@@ -313,13 +322,20 @@ export default function InvoiceForm({
                             key={kind.key}
                             type="button"
                             role="tab"
-                            aria-selected={kind.enabled}
-                            disabled={!kind.enabled}
+                            aria-selected={kind.key === documentKind}
+                            disabled={!kind.enabled || (invoice !== null && kind.key !== documentKind)}
                             title={kind.enabled ? undefined : t('Coming soon')}
+                            onClick={() =>
+                                !invoice &&
+                                kind.key !== documentKind &&
+                                router.get('/invoices/create', { kind: kind.key })
+                            }
                             className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium uppercase tracking-wide transition-colors ${
-                                kind.enabled
+                                kind.key === documentKind
                                     ? 'border-primary text-primary'
-                                    : 'cursor-not-allowed border-transparent text-muted/60'
+                                    : kind.enabled && !invoice
+                                      ? 'border-transparent text-muted hover:text-text'
+                                      : 'cursor-not-allowed border-transparent text-muted/60'
                             }`}
                         >
                             {t(kind.label)}

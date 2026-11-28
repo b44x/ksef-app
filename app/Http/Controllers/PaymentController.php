@@ -17,7 +17,7 @@ class PaymentController extends Controller
     public function store(Request $request, Invoice $invoice): RedirectResponse
     {
         $this->authorizeOwnership($invoice);
-        abort_if($invoice->isDraft() || $invoice->gross_total === null, 404);
+        abort_if($invoice->isDraft() || $invoice->isProforma() || $invoice->gross_total === null, 404);
 
         $data = $request->validate([
             'amount' => ['required', 'numeric', 'gt:0', 'decimal:0,2'],
@@ -39,7 +39,7 @@ class PaymentController extends Controller
     public function settle(Invoice $invoice): RedirectResponse
     {
         $this->authorizeOwnership($invoice);
-        abort_if($invoice->isDraft() || $invoice->gross_total === null, 404);
+        abort_if($invoice->isDraft() || $invoice->isProforma() || $invoice->gross_total === null, 404);
 
         $left = $invoice->outstanding();
         if (! $left->isZero()) {

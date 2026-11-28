@@ -25,6 +25,7 @@ final class SalesReport
         return $this->company->invoices()
             ->with('contractor:id,name,nip')->withSum('payments', 'amount')
             ->whereIn('status', [InvoiceStatus::Issued, InvoiceStatus::Sending, InvoiceStatus::Accepted])
+            ->where('kind', 'vat')
             ->whereNotNull('gross_total')
             ->whereBetween('issue_date', [$from->toDateString(), $to->toDateString()])
             ->orderBy('issue_date')->orderBy('id')->get();
@@ -132,7 +133,7 @@ final class SalesReport
         $today ??= CarbonImmutable::today();
         $invoices = $this->company->invoices()->withSum('payments', 'amount')
             ->whereIn('status', [InvoiceStatus::Issued, InvoiceStatus::Sending, InvoiceStatus::Accepted])
-            ->whereNotNull('gross_total')->get();
+            ->where('kind', 'vat')->whereNotNull('gross_total')->get();
 
         $rows = [];
         foreach ($invoices as $invoice) {

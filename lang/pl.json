@@ -583,5 +583,14 @@
     "NBP table": "Tabela NBP",
     "VAT in PLN": "VAT w PLN",
     "Exchange rate": "Kurs waluty",
-    "NBP average rate :rate PLN/:currency of :date": "Średni kurs NBP :rate PLN/:currency z dnia :date"
+    "NBP average rate :rate PLN/:currency of :date": "Średni kurs NBP :rate PLN/:currency z dnia :date",
+    "A proforma is not a VAT invoice and is never sent to KSeF. Make the VAT invoice from it when the sale happens.": "Proforma nie jest fakturą VAT i nigdy nie trafia do KSeF. Gdy dojdzie do sprzedaży, wystaw na jej podstawie fakturę VAT.",
+    "Open the VAT invoice": "Otwórz fakturę VAT",
+    "Make a VAT invoice": "Wystaw fakturę VAT",
+    "Made from the proforma": "Wystawiona na podstawie proformy",
+    "New proforma": "Nowa proforma",
+    "proforma": "proforma",
+    "Proforma invoice": "Faktura proforma",
+    "This is a proforma invoice. It is not a VAT invoice.": "To jest faktura proforma. Nie jest fakturą VAT.",
+    "A VAT invoice draft was made from :number.": "Szkic faktury VAT powstał na podstawie :number."
 }

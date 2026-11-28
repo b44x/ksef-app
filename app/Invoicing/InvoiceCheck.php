@@ -33,8 +33,8 @@ final class InvoiceCheck
                 $problems[] = __('The corrected invoice must be accepted by KSeF first.');
             }
         }
-        if ($problems !== []) {
-            return $problems;
+        if ($problems !== [] || $invoice->isProforma()) {
+            return $problems; // a proforma is not an FA(3) document: nothing more to check
         }
 
         try {

@@ -182,7 +182,7 @@
 @endif
 
 <div class="foot">
-    @if ($show['footer'] && $s['footer_text'] !== ''){{ $s['footer_text'] }}@else{{ __('Invoice from the National e-Invoice System (KSeF)') }}@endif
+    @if (! empty($i['proforma'])){{ __('This is a proforma invoice. It is not a VAT invoice.') }}@elseif ($show['footer'] && $s['footer_text'] !== ''){{ $s['footer_text'] }}@else{{ __('Invoice from the National e-Invoice System (KSeF)') }}@endif
 </div>
 </body>
 </html>

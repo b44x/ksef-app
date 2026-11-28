@@ -56,6 +56,9 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Foreign-currency invoices: currency, NBP rate of the last business day before the sale (fetched), VAT in PLN on the page and PDF
 - [ ] Foreign-currency invoices in the VAT report (sums in PLN)
 
+- [x] Proforma invoices: own numbering, PDF and e-mail, never sent to KSeF, one click to make the VAT invoice from it
+- [ ] Advance and settlement invoices (the SDK supports them)
+
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)
 - [ ] Manual check that the installers start and work on real Windows and macOS machines

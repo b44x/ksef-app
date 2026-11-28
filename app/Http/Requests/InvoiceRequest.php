@@ -27,6 +27,7 @@ class InvoiceRequest extends FormRequest
             'contractor_id' => ['required', Rule::exists('contractors', 'id')->where('company_id', $company)],
             'numbering_series_id' => ['required', Rule::exists('numbering_series', 'id')->where('company_id', $company)],
             'issue_date' => ['required', 'date_format:Y-m-d'],
+            'kind' => ['sometimes', Rule::in(['vat', 'proforma'])],
             'currency' => ['sometimes', Rule::in(Currencies::CODES)],
             'exchange_rate' => [Rule::requiredIf(fn () => $this->input('currency', 'PLN') !== 'PLN'), 'nullable', 'numeric', 'gt:0', 'decimal:0,6', 'max:9999999'],
             'exchange_rate_date' => ['nullable', 'date_format:Y-m-d'],

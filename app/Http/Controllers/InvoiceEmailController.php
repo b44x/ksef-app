@@ -20,7 +20,7 @@ class InvoiceEmailController extends Controller
     public function store(Request $request, Invoice $invoice, InvoiceView $view, InvoicePdf $pdf): RedirectResponse
     {
         $this->authorizeOwnership($invoice);
-        abort_unless($invoice->isSale(), 404);
+        abort_unless($invoice->isPrintable(), 404);
 
         $data = $request->validate([
             'to' => ['required', 'email', 'max:255'],

@@ -22,6 +22,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $invoice_template_id
  * @property int|null $recurring_invoice_id
  * @property int|null $corrects_invoice_id
+ * @property string $kind
+ * @property int|null $converted_from_id
  * @property string|null $correction_reason
  * @property int $correction_type
  * @property InvoiceStatus $status
@@ -59,11 +61,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property Carbon|null $accepted_at
  */
-#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'currency', 'exchange_rate', 'exchange_rate_date'])]
+#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'currency', 'exchange_rate', 'exchange_rate_date', 'kind'])]
 class Invoice extends Model
 {
     /** A new invoice is a draft, whether or not it has been read back from the database yet. */
-    protected $attributes = ['status' => 'draft'];
+    protected $attributes = ['status' => 'draft', 'kind' => 'vat'];
 
     /**
      * @return array<string, string>
@@ -137,6 +139,20 @@ class Invoice extends Model
     public function corrections(): HasMany
     {
         return $this->hasMany(self::class, 'corrects_invoice_id')->orderBy('id');
+    }
+
+    /** A proforma: sent to the buyer like an invoice, but not a VAT invoice, not in KSeF and not a sale. */
+    public function isProforma(): bool
+    {
+        return $this->kind === 'proforma';
+    }
+
+    /**
+     * @return BelongsTo<Invoice, $this>
+     */
+    public function convertedFrom(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'converted_from_id');
     }
 
     public function isCorrection(): bool
@@ -224,8 +240,14 @@ class Invoice extends Model
         return $this->outstanding()->isZero() ? PaymentStatus::Paid : PaymentStatus::Partial;
     }
 
-    /** A sale that is owed money: not a draft, and not one KSeF refused. */
+    /** A sale that is owed money: not a draft, not a proforma, and not one KSeF refused. */
     public function isSale(): bool
+    {
+        return ! $this->isDraft() && ! $this->isProforma() && $this->status !== InvoiceStatus::Rejected;
+    }
+
+    /** Can go to the buyer as a document: issued (a proforma included), and not refused by KSeF. */
+    public function isPrintable(): bool
     {
         return ! $this->isDraft() && $this->status !== InvoiceStatus::Rejected;
     }

@@ -58,14 +58,14 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function create(): Response|RedirectResponse
+    public function create(Request $request): Response|RedirectResponse
     {
         $company = Company::current();
         if ($company === null) {
             return redirect()->route('company.edit');
         }
 
-        return $this->form($company, null);
+        return $this->form($company, null, $request->query('kind') === 'proforma' ? 'proforma' : 'vat');
     }
 
     public function edit(Invoice $invoice): Response|RedirectResponse
@@ -85,7 +85,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.edit', $invoice);
         }
 
-        $invoice->load(['lines', 'series', 'corrections', 'corrected', 'contractor', 'emails']);
+        $invoice->load(['lines', 'series', 'corrections', 'corrected', 'contractor', 'emails', 'convertedFrom']);
         $lines = $invoice->lines->map(fn ($l): array => [
             'name' => $l->name,
             'unit' => $l->unit ?? '',
@@ -101,6 +101,9 @@ class InvoiceController extends Controller
         return Inertia::render('InvoiceShow', [
             'invoice' => [
                 'id' => $invoice->id,
+                'kind' => $invoice->kind,
+                'converted_from' => $invoice->convertedFrom === null ? null : ['id' => $invoice->convertedFrom->id, 'number' => $invoice->convertedFrom->number],
+                'converted_to' => Invoice::query()->where('converted_from_id', $invoice->id)->get(['id', 'number'])->map(fn (Invoice $i): array => ['id' => $i->id, 'number' => $i->number])->all(),
                 'number' => $invoice->number,
                 'status' => $invoice->status->value,
                 'status_label' => $invoice->status->label(),
@@ -152,7 +155,7 @@ class InvoiceController extends Controller
                 'items' => $invoice->payments->map(fn ($p): array => ['id' => $p->id, 'amount' => $p->amount, 'paid_on' => $p->paid_on->toDateString(), 'note' => $p->note])->all(),
             ],
             'email' => [
-                'can_send' => $invoice->isSale(),
+                'can_send' => $invoice->isPrintable(),
                 'to' => $invoice->contractor->email ?? '',
                 'subject' => __('Invoice :number from :company', ['number' => (string) $invoice->number, 'company' => $invoice->company->name]),
                 'message' => __("Hello,\n\nPlease find invoice :number attached.\n\nBest regards,\n:company", ['number' => (string) $invoice->number, 'company' => $invoice->company->name]),
@@ -244,6 +247,7 @@ class InvoiceController extends Controller
     public function send(Invoice $invoice): RedirectResponse
     {
         $this->authorizeOwnership($invoice);
+        abort_if($invoice->isProforma(), 404); // a proforma never goes to KSeF
 
         if ($invoice->company->needsSigningIn()) {
             return back()->withErrors(['send' => __('Sign in to KSeF first: the signed login has expired or was never made.')]);
@@ -334,6 +338,46 @@ class InvoiceController extends Controller
         }
     }
 
+    /** A VAT invoice draft made from a proforma: the same buyer and lines, in the company's default series. */
+    public function convert(Invoice $invoice): RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+        abort_unless($invoice->isProforma() && ! $invoice->isDraft(), 403);
+
+        $existing = Invoice::query()->where('converted_from_id', $invoice->id)->first();
+        if ($existing !== null) {
+            return redirect()->route($existing->isDraft() ? 'invoices.edit' : 'invoices.show', $existing);
+        }
+
+        $draft = DB::transaction(function () use ($invoice): Invoice {
+            $series = $invoice->company->numberingSeries()->where('is_default', true)->first() ?? $invoice->series;
+            $draft = new Invoice([
+                'contractor_id' => $invoice->contractor_id,
+                'numbering_series_id' => $series->id,
+                'issue_date' => now()->toDateString(),
+                'sale_date' => $invoice->sale_date?->toDateString(),
+                'due_date' => $invoice->due_date?->toDateString(),
+                'payment_method' => $invoice->payment_method,
+                'bank_account' => $invoice->bank_account,
+                'notes' => $invoice->notes,
+                'invoice_template_id' => $invoice->invoice_template_id,
+                'currency' => $invoice->currency,
+                'exchange_rate' => $invoice->exchange_rate,
+                'exchange_rate_date' => $invoice->exchange_rate_date?->toDateString(),
+            ]);
+            $draft->company_id = $invoice->company_id;
+            $draft->converted_from_id = $invoice->id;
+            $draft->save();
+            foreach ($invoice->lines as $line) {
+                $draft->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']));
+            }
+
+            return $draft;
+        });
+
+        return redirect()->route('invoices.edit', $draft)->with('status', __('A VAT invoice draft was made from :number.', ['number' => (string) $invoice->number]));
+    }
+
     /** A draft correction of an accepted invoice, starting from the lines as they stand. An unfinished one is continued, not doubled. */
     public function correct(Invoice $invoice): RedirectResponse
     {
@@ -419,7 +463,7 @@ class InvoiceController extends Controller
         abort_unless($invoice->isDraft(), 403);
 
         DB::transaction(function () use ($request, $invoice): void {
-            $data = $request->safe()->except('lines');
+            $data = $request->safe()->except(['lines', 'kind']); // what an invoice is does not change after it is made
             if ($invoice->isCorrection()) {
                 // A correction is about the same sale: the buyer and the series do not change.
                 $data['contractor_id'] = $invoice->contractor_id;
@@ -466,9 +510,10 @@ class InvoiceController extends Controller
         return response()->json(Totals::of($data['lines'], $currency, $before, $currency === 'PLN' ? null : ($data['exchange_rate'] ?? null)));
     }
 
-    private function form(Company $company, ?Invoice $invoice): Response
+    private function form(Company $company, ?Invoice $invoice, string $kind = 'vat'): Response
     {
         return Inertia::render('InvoiceForm', [
+            'kind' => $invoice !== null ? $invoice->kind : $kind,
             'invoice' => $invoice === null ? null : [
                 'id' => $invoice->id,
                 'number' => $invoice->number,

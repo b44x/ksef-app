@@ -54,6 +54,10 @@ final class IssueInvoice
 
             $number = $invoice->series->issue($invoice->issue_date);
 
+            if ($invoice->isProforma()) {
+                return $this->issueProforma($invoice, $number);
+            }
+
             try {
                 $sdk = $this->factory->make($invoice, $number);
                 $issued = $offline?->usesQr() === true ? $this->offline($invoice->company, $sdk) : $this->online($sdk);
@@ -82,6 +86,27 @@ final class IssueInvoice
 
             return $invoice;
         });
+    }
+
+    /** A proforma gets its number and its frozen sums, and no document: it is never built as FA(3) or sent to KSeF. */
+    private function issueProforma(Invoice $invoice, string $number): Invoice
+    {
+        $lines = $invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all();
+        $rate = $invoice->currency !== 'PLN' && $invoice->exchange_rate !== null ? SdkInvoiceFactory::trim($invoice->exchange_rate) : null;
+        $totals = Totals::of($lines, $invoice->currency, [], $rate);
+
+        $invoice->forceFill([
+            'net_total' => $totals['net'],
+            'vat_total' => $totals['vat'],
+            'gross_total' => $totals['gross'],
+            'vat_summary' => $totals['buckets'],
+            'number' => $number,
+            'snapshot' => $this->snapshot($invoice),
+            'status' => InvoiceStatus::Issued,
+            'issued_at' => now(),
+        ])->save();
+
+        return $invoice;
     }
 
     /**
