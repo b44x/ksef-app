@@ -1,10 +1,12 @@
-import { Download } from 'lucide-react';
+import { router, usePage } from '@inertiajs/react';
+import { CheckCircle2, CircleDashed, Copy, CopyPlus, Download, Loader2, RefreshCw, Send, XCircle } from 'lucide-react';
+import { useEffect } from 'react';
 import { Button, ButtonLink } from '../Components/Button';
-import { Badge, Card, PageHeader } from '../Components/Ui';
+import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
 import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
 import { useMoney } from '../lib/format';
-import type { InvoiceLineForm, TotalsPreview } from '../types';
+import type { InvoiceLineForm, SharedProps, TotalsPreview } from '../types';
 
 interface Party {
     name: string;
@@ -20,6 +22,7 @@ interface Props {
         number: string;
         status: string;
         status_label: string;
+        status_tone: 'warning' | 'primary' | 'success' | 'danger';
         issue_date: string;
         sale_date: string | null;
         due_date: string | null;
@@ -30,8 +33,20 @@ interface Props {
         parties: { seller: Party; buyer: Party };
         lines: InvoiceLineForm[];
         xml: string;
+        ksef: {
+            number: string | null;
+            code: number | null;
+            description: string | null;
+            error: string | null;
+            sent_at: string | null;
+            accepted_at: string | null;
+            has_upo: boolean;
+            can_check: boolean;
+        };
     };
     totals: TotalsPreview;
+    canSend: boolean;
+    manualLogin: boolean;
 }
 
 function PartyBlock({ title, party }: { title: string; party: Party }) {
@@ -49,15 +64,77 @@ function PartyBlock({ title, party }: { title: string; party: Party }) {
     );
 }
 
-export default function InvoiceShow({ invoice, totals }: Props) {
+/** Where the invoice stands on its way to KSeF: issued, sent, accepted (or rejected). */
+function Delivery({ invoice }: { invoice: Props['invoice'] }) {
+    const t = useT();
+    const status = invoice.status;
+    const sent = status !== 'issued';
+    const done = status === 'accepted' || status === 'rejected';
+
+    const steps = [
+        { label: t('Issued'), state: 'done' as const },
+        { label: t('Sent to KSeF'), state: sent ? ('done' as const) : ('todo' as const) },
+        {
+            label: status === 'rejected' ? t('Rejected by KSeF') : t('Accepted by KSeF'),
+            state:
+                status === 'accepted'
+                    ? ('done' as const)
+                    : status === 'rejected'
+                      ? ('failed' as const)
+                      : status === 'sending'
+                        ? ('active' as const)
+                        : ('todo' as const),
+        },
+    ];
+
+    return (
+        <ol className="flex flex-wrap items-center gap-x-2 gap-y-3" aria-label={t('Delivery to KSeF')}>
+            {steps.map((step, i) => (
+                <li key={step.label} className="flex items-center gap-2">
+                    {step.state === 'done' && <CheckCircle2 className="size-5 text-success" aria-hidden />}
+                    {step.state === 'active' && <Loader2 className="size-5 animate-spin text-primary" aria-hidden />}
+                    {step.state === 'failed' && <XCircle className="size-5 text-danger" aria-hidden />}
+                    {step.state === 'todo' && <CircleDashed className="size-5 text-muted/60" aria-hidden />}
+                    <span
+                        className={`text-sm font-medium ${step.state === 'todo' ? 'text-muted' : step.state === 'failed' ? 'text-danger' : 'text-text'}`}
+                    >
+                        {step.label}
+                    </span>
+                    {i < steps.length - 1 && (
+                        <span
+                            className={`mx-2 h-px w-8 sm:w-14 ${done || (i === 0 && sent) ? 'bg-success/50' : 'bg-border'}`}
+                            aria-hidden
+                        />
+                    )}
+                </li>
+            ))}
+        </ol>
+    );
+}
+
+export default function InvoiceShow({ invoice, totals, canSend, manualLogin }: Props) {
     const t = useT();
     const money = useMoney();
+    const { errors } = usePage<SharedProps>().props as SharedProps & { errors: Record<string, string> };
+    const sending = invoice.status === 'sending';
+
+    // While KSeF is checking the invoice the page follows along; it stops by itself when the verdict arrives.
+    useEffect(() => {
+        if (!sending) {
+            return;
+        }
+        const timer = setInterval(() => router.reload({ only: ['invoice'] }), 3000);
+
+        return () => clearInterval(timer);
+    }, [sending]);
+
+    const send = () => router.post(`/invoices/${invoice.id}/send`);
 
     return (
         <AppLayout>
             <PageHeader
                 title={invoice.number}
-                badge={<Badge tone="primary">{invoice.status_label}</Badge>}
+                badge={<Badge tone={invoice.status_tone}>{invoice.status_label}</Badge>}
                 description={t('Issued invoices cannot be changed. The FA(3) document below is what KSeF receives.')}
                 actions={
                     <>
@@ -65,14 +142,89 @@ export default function InvoiceShow({ invoice, totals }: Props) {
                             {t('Back to the list')}
                         </ButtonLink>
                         <a href={`/invoices/${invoice.id}/xml`} download>
-                            <Button>
+                            <Button variant="secondary">
                                 <Download className="size-4" />
                                 {t('Download XML')}
                             </Button>
                         </a>
+                        {invoice.status === 'issued' && (
+                            <Button onClick={send} disabled={!canSend}>
+                                <Send className="size-4" />
+                                {t('Send to KSeF')}
+                            </Button>
+                        )}
+                        {invoice.status === 'rejected' && (
+                            <Button onClick={() => router.post(`/invoices/${invoice.id}/duplicate`)}>
+                                <CopyPlus className="size-4" />
+                                {t('Make a corrected draft')}
+                            </Button>
+                        )}
                     </>
                 }
             />
+
+            <Card title={t('Delivery to KSeF')} className="mb-6">
+                <div className="space-y-4">
+                    <Delivery invoice={invoice} />
+
+                    {invoice.ksef.number && (
+                        <div className="flex flex-wrap items-center gap-3 rounded-lg bg-success-soft px-4 py-3 text-sm">
+                            <span className="text-success">{t('KSeF number')}</span>
+                            <code className="font-mono font-medium text-text">{invoice.ksef.number}</code>
+                            <button
+                                type="button"
+                                onClick={() => navigator.clipboard?.writeText(invoice.ksef.number ?? '')}
+                                title={t('Copy')}
+                                aria-label={t('Copy')}
+                                className="rounded p-1 text-success hover:bg-success/10"
+                            >
+                                <Copy className="size-4" />
+                            </button>
+                            {invoice.status === 'accepted' && (
+                                <a
+                                    href={`/invoices/${invoice.id}/upo`}
+                                    download
+                                    className="ml-auto inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
+                                >
+                                    <Download className="size-4" />
+                                    {t('Download UPO')}
+                                </a>
+                            )}
+                        </div>
+                    )}
+
+                    {sending && !invoice.ksef.error && (
+                        <p className="text-sm text-muted">
+                            {t('KSeF is checking the invoice. This page updates by itself.')}
+                        </p>
+                    )}
+
+                    {invoice.status === 'issued' && manualLogin && (
+                        <Alert tone="info">
+                            {t(
+                                'This company signs in to KSeF by hand, which is not available for sending yet. Use a token or a certificate in the company settings.',
+                            )}
+                        </Alert>
+                    )}
+
+                    {(invoice.ksef.error || errors.send) && (
+                        <Alert tone={invoice.status === 'rejected' ? 'danger' : 'warning'}>
+                            <div className="whitespace-pre-line">{invoice.ksef.error ?? errors.send}</div>
+                        </Alert>
+                    )}
+
+                    {invoice.ksef.can_check && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => router.post(`/invoices/${invoice.id}/check`)}
+                        >
+                            <RefreshCw className="size-4" />
+                            {t('Check status')}
+                        </Button>
+                    )}
+                </div>
+            </Card>
 
             <div className="rounded-xl border border-border bg-surface shadow-card">
                 <div className="grid gap-4 border-b border-border p-6 sm:grid-cols-3">

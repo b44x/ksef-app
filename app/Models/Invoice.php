@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\InvoiceStatus;
+use App\Ksef\Submission;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +27,17 @@ use Illuminate\Support\Carbon;
  * @property string|null $xml
  * @property array{seller: array<string, string|null>, buyer: array<string, string|null>}|null $snapshot
  * @property Carbon|null $issued_at
+ * @property string|null $ksef_session_reference
+ * @property string|null $ksef_invoice_reference
+ * @property string|null $ksef_invoice_hash
+ * @property string|null $ksef_number
+ * @property int|null $ksef_status_code
+ * @property string|null $ksef_status_description
+ * @property string|null $ksef_error
+ * @property string|null $upo_xml
+ * @property int $poll_attempts
+ * @property Carbon|null $sent_at
+ * @property Carbon|null $accepted_at
  */
 #[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes'])]
 class Invoice extends Model
@@ -42,6 +54,8 @@ class Invoice extends Model
             'due_date' => 'date',
             'snapshot' => 'array',
             'issued_at' => 'datetime',
+            'sent_at' => 'datetime',
+            'accepted_at' => 'datetime',
         ];
     }
 
@@ -75,6 +89,16 @@ class Invoice extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(InvoiceLine::class)->orderBy('position');
+    }
+
+    /** The references of the submission, once KSeF accepted the document for processing. */
+    public function submission(): ?Submission
+    {
+        if ($this->ksef_session_reference === null || $this->ksef_invoice_reference === null || $this->ksef_invoice_hash === null) {
+            return null;
+        }
+
+        return new Submission($this->ksef_session_reference, $this->ksef_invoice_reference, $this->ksef_invoice_hash);
     }
 
     public function isDraft(): bool

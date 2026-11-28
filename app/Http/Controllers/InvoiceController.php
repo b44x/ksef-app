@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AuthMethod;
+use App\Enums\InvoiceStatus;
 use App\Http\Controllers\Concerns\ScopedToCompany;
 use App\Http\Requests\InvoiceRequest;
 use App\Invoicing\InvoiceCheck;
@@ -10,6 +12,9 @@ use App\Invoicing\InvoiceRow;
 use App\Invoicing\IssueInvoice;
 use App\Invoicing\SdkInvoiceFactory;
 use App\Invoicing\Totals;
+use App\Jobs\PollInvoiceStatusJob;
+use App\Jobs\SendInvoiceJob;
+use App\Ksef\KsefGateway;
 use App\Models\Company;
 use App\Models\Invoice;
 use B4x\Ksef\Invoice\PaymentMethod;
@@ -82,6 +87,7 @@ class InvoiceController extends Controller
                 'number' => $invoice->number,
                 'status' => $invoice->status->value,
                 'status_label' => $invoice->status->label(),
+                'status_tone' => $invoice->status->tone(),
                 'issue_date' => $invoice->issue_date->toDateString(),
                 'sale_date' => $invoice->sale_date?->toDateString(),
                 'due_date' => $invoice->due_date?->toDateString(),
@@ -93,7 +99,19 @@ class InvoiceController extends Controller
                 'parties' => $invoice->snapshot,
                 'lines' => $lines,
                 'xml' => self::pretty((string) $invoice->xml),
+                'ksef' => [
+                    'number' => $invoice->ksef_number,
+                    'code' => $invoice->ksef_status_code,
+                    'description' => $invoice->ksef_status_description,
+                    'error' => $invoice->ksef_error,
+                    'sent_at' => $invoice->sent_at?->toIso8601String(),
+                    'accepted_at' => $invoice->accepted_at?->toIso8601String(),
+                    'has_upo' => $invoice->upo_xml !== null,
+                    'can_check' => $invoice->status === InvoiceStatus::Sending && $invoice->submission() !== null,
+                ],
             ],
+            'canSend' => $invoice->status === InvoiceStatus::Issued && $invoice->company->auth_method !== AuthMethod::Manual,
+            'manualLogin' => $invoice->company->auth_method === AuthMethod::Manual,
             'totals' => Totals::of($lines, $invoice->currency),
         ]);
     }
@@ -109,6 +127,86 @@ class InvoiceController extends Controller
         }
 
         return redirect()->route('invoices.show', $issued)->with('status', __('Invoice issued: :number', ['number' => (string) $issued->number]));
+    }
+
+    /** Hands the issued invoice to KSeF in the background; the page follows its status. */
+    public function send(Invoice $invoice): RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+
+        if ($invoice->company->auth_method === AuthMethod::Manual) {
+            return back()->withErrors(['send' => __('This company signs in to KSeF by hand, which is not available for sending yet. Use a token or a certificate in the company settings.')]);
+        }
+
+        // One atomic step: two clicks, or two tabs, hand the invoice over once.
+        $claimed = Invoice::query()->whereKey($invoice->id)->where('status', InvoiceStatus::Issued)
+            ->update(['status' => InvoiceStatus::Sending, 'ksef_error' => null, 'sent_at' => now()]);
+        if ($claimed === 0) {
+            return back()->withErrors(['send' => __('This invoice is not waiting to be sent.')]);
+        }
+
+        SendInvoiceJob::dispatch($invoice->id);
+
+        return back()->with('status', __('Sending to KSeF…'));
+    }
+
+    /** Asks KSeF again for its verdict on an invoice that is still being checked. */
+    public function check(Invoice $invoice): RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+        abort_unless($invoice->status === InvoiceStatus::Sending && $invoice->submission() !== null, 403);
+
+        $invoice->forceFill(['poll_attempts' => 0, 'ksef_error' => null])->save();
+        PollInvoiceStatusJob::dispatch($invoice->id);
+
+        return back();
+    }
+
+    /** The official confirmation of receipt; fetched from KSeF the first time it is asked for. */
+    public function upo(Invoice $invoice, KsefGateway $gateway): StreamedResponse|RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+        abort_unless($invoice->status === InvoiceStatus::Accepted && $invoice->submission() !== null, 404);
+
+        if ($invoice->upo_xml === null) {
+            $upo = $gateway->upo($invoice->company, $invoice->submission());
+            if ($upo === null) {
+                return back()->withErrors(['send' => __('The confirmation (UPO) is not available yet. Try again in a moment.')]);
+            }
+            $invoice->forceFill(['upo_xml' => $upo])->save();
+        }
+
+        $name = 'UPO-'.preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $invoice->ksef_number).'.xml';
+
+        return response()->streamDownload(function () use ($invoice): void {
+            echo $invoice->upo_xml;
+        }, $name, ['Content-Type' => 'application/xml; charset=utf-8']);
+    }
+
+    /** A new draft with the same buyer, series and lines: the way on after a rejection, and a time saver otherwise. */
+    public function duplicate(Invoice $invoice): RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+
+        $copy = DB::transaction(function () use ($invoice): Invoice {
+            $copy = new Invoice([
+                'contractor_id' => $invoice->contractor_id,
+                'numbering_series_id' => $invoice->numbering_series_id,
+                'issue_date' => now()->toDateString(),
+                'payment_method' => $invoice->payment_method,
+                'bank_account' => $invoice->bank_account,
+                'notes' => $invoice->notes,
+            ]);
+            $copy->company()->associate($invoice->company);
+            $copy->save();
+            foreach ($invoice->lines as $line) {
+                $copy->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']));
+            }
+
+            return $copy;
+        });
+
+        return redirect()->route('invoices.edit', $copy)->with('status', __('A new draft was made from :number.', ['number' => (string) $invoice->number]));
     }
 
     public function xml(Invoice $invoice): StreamedResponse

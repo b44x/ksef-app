@@ -8,7 +8,7 @@ use App\Models\Invoice;
 final class InvoiceRow
 {
     /**
-     * @return array{id: int, number: string|null, status: string, status_label: string, issue_date: string, contractor: string, currency: string, gross: string}
+     * @return array{id: int, number: string|null, status: string, status_label: string, status_tone: string, issue_date: string, contractor: string, currency: string, gross: string}
      */
     public static function of(Invoice $invoice): array
     {
@@ -24,6 +24,7 @@ final class InvoiceRow
             'number' => $invoice->number,
             'status' => $invoice->status->value,
             'status_label' => $invoice->status->label(),
+            'status_tone' => $invoice->status->tone(),
             'issue_date' => $invoice->issue_date->toDateString(),
             'contractor' => $invoice->contractor->name,
             'currency' => $invoice->currency,

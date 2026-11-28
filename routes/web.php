@@ -32,6 +32,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/contractors/{contractor}', [ContractorController::class, 'destroy'])->name('contractors.destroy');
     Route::post('/invoices/preview', [InvoiceController::class, 'preview'])->name('invoices.preview');
     Route::post('/invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
+    Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
+    Route::post('/invoices/{invoice}/check', [InvoiceController::class, 'check'])->name('invoices.check');
+    Route::post('/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
+    Route::get('/invoices/{invoice}/upo', [InvoiceController::class, 'upo'])->name('invoices.upo');
     Route::get('/invoices/{invoice}/xml', [InvoiceController::class, 'xml'])->name('invoices.xml');
     Route::resource('invoices', InvoiceController::class);
     Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);

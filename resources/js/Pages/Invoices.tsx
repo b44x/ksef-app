@@ -10,6 +10,7 @@ interface Row {
     number: string | null;
     status: string;
     status_label: string;
+    status_tone: 'warning' | 'primary' | 'success' | 'danger';
     issue_date: string;
     contractor: string;
     currency: string;
@@ -69,9 +70,7 @@ export default function Invoices({ invoices }: { invoices: Row[] }) {
                                         {money(i.gross, i.currency)}
                                     </td>
                                     <td>
-                                        <Badge tone={i.status === 'draft' ? 'warning' : 'primary'}>
-                                            {i.status_label}
-                                        </Badge>
+                                        <Badge tone={i.status_tone}>{i.status_label}</Badge>
                                     </td>
                                 </tr>
                             ))}

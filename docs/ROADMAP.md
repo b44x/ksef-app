@@ -16,7 +16,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Invoice draft: lines, VAT rates, live totals from the SDK, checks in words before sending
 - [x] Issue: the number from the series, the FA(3) built and schema-validated by the SDK, both frozen; XML download
 - [ ] Corrections, advance and settlement invoices
-- [ ] Send in the background, follow the status, keep the UPO and the KSeF number
+- [x] Send in the background (queue), follow the status, keep the UPO and the KSeF number; safe to send again after a lost connection
+- [ ] Signing screen for companies that log in by hand (sending needs a token or a certificate until then)
 - [ ] Invoice view with the QR code; download the XML
 
 ## M3: Receive invoices

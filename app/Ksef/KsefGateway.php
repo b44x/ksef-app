@@ -15,4 +15,19 @@ interface KsefGateway
      * limits and the permissions.
      */
     public function check(Company $company): ConnectionReport;
+
+    /**
+     * Hands an issued invoice's FA(3) document to KSeF. "Accepted for processing" is all this promises: the verdict
+     * comes from {@see self::status()}.
+     *
+     * @throws SubmissionRefused when KSeF stored nothing (sending again is safe)
+     * @throws SubmissionUncertain when the connection failed on the way (sending again is safe too)
+     */
+    public function submit(Company $company, string $xml): Submission;
+
+    /** Asks KSeF for its verdict on a submitted invoice. Does not wait. */
+    public function status(Company $company, Submission $submission): SubmissionStatus;
+
+    /** The official confirmation of receipt (UPO) as XML, or null while it is not available. */
+    public function upo(Company $company, Submission $submission): ?string;
 }
