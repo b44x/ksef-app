@@ -22,13 +22,22 @@ interface KsefGateway
      *
      * @throws SubmissionRefused when KSeF stored nothing (sending again is safe)
      * @throws SubmissionUncertain when the connection failed on the way (sending again is safe too)
+     * @throws SigningRequired when the company signs in by hand and has no valid login
      */
     public function submit(Company $company, string $xml): Submission;
 
-    /** Asks KSeF for its verdict on a submitted invoice. Does not wait. */
+    /**
+     * Asks KSeF for its verdict on a submitted invoice. Does not wait.
+     *
+     * @throws SigningRequired when the company signs in by hand and has no valid login
+     */
     public function status(Company $company, Submission $submission): SubmissionStatus;
 
-    /** The official confirmation of receipt (UPO) as XML, or null while it is not available. */
+    /**
+     * The official confirmation of receipt (UPO) as XML, or null while it is not available.
+     *
+     * @throws SigningRequired when the company signs in by hand and has no valid login
+     */
     public function upo(Company $company, Submission $submission): ?string;
 
     /**
@@ -49,6 +58,8 @@ interface KsefGateway
     /**
      * The purchase invoices (the company is the buyer) KSeF stored since a moment. One export at most: when KSeF cuts it
      * short the batch says where to continue.
+     *
+     * @throws SigningRequired when the company signs in by hand and has no valid login
      */
     public function purchases(Company $company, \DateTimeImmutable $from): PurchaseBatch;
 }
