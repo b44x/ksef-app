@@ -42,6 +42,10 @@ final class InvoiceQr
      */
     public function codes(Invoice $invoice): ?array
     {
+        if ($invoice->offline_mode?->usesQr() === false) {
+            return null; // a total failure: no codes, by the rules
+        }
+
         $offline = $invoice->offline_mode !== null;
         $accepted = $invoice->status === InvoiceStatus::Accepted && $invoice->ksef_number !== null;
         if (! $offline && ! $accepted) {

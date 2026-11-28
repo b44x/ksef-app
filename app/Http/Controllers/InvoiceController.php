@@ -162,7 +162,8 @@ class InvoiceController extends Controller
         $state = $company === null ? null : app(AvailabilityMonitor::class)->current($company)?->state;
 
         return match ($state) {
-            AvailabilityState::Failure, AvailabilityState::TotalFailure => OfflineMode::Emergency,
+            AvailabilityState::Failure => OfflineMode::Emergency,
+            AvailabilityState::TotalFailure => OfflineMode::TotalFailure,
             AvailabilityState::Maintenance => OfflineMode::Unavailability,
             default => OfflineMode::Offline24,
         };
@@ -397,7 +398,7 @@ class InvoiceController extends Controller
             ],
             'offline' => [
                 'available' => $company->canIssueOffline(),
-                'modes' => array_map(fn (OfflineMode $m): array => ['value' => $m->value, 'label' => $m->label(), 'hint' => $m->hint(), 'needs_anchor' => $m->needsAnchor()], OfflineMode::cases()),
+                'modes' => array_map(fn (OfflineMode $m): array => ['value' => $m->value, 'label' => $m->label(), 'hint' => $m->hint(), 'needs_anchor' => $m->needsAnchor(), 'needs_certificate' => $m->usesQr()], OfflineMode::cases()),
                 'suggested' => self::suggestedMode()->value,
             ],
             'today' => now()->toDateString(),

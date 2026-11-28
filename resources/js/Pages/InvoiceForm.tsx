@@ -159,7 +159,7 @@ export default function InvoiceForm({
                             <Save className="size-4" />
                             {t('Save draft')}
                         </Button>
-                        {canIssue && offline.available && (
+                        {canIssue && (
                             <Button variant="secondary" onClick={() => setOfflineOpen(true)}>
                                 <WifiOff className="size-4" />
                                 {t('Issue offline')}

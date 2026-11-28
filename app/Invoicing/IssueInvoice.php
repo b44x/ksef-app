@@ -29,7 +29,7 @@ final class IssueInvoice
     ) {}
 
     /**
-     * @param  OfflineMode|null  $offline  issue without KSeF, with the QR codes, to deliver later (needs the Offline certificate)
+     * @param  OfflineMode|null  $offline  issue without KSeF, to deliver later; with the QR codes (and so the Offline certificate) unless it is a total failure
      * @param  DateTimeInterface|null  $anchor  when the failure or unavailability ended, if it has; the deadline counts from it
      *
      * @throws InvoiceNotReady when something stands in the way (the reasons are in words)
@@ -48,7 +48,7 @@ final class IssueInvoice
                 throw new InvoiceNotReady($problems);
             }
 
-            if ($offline !== null && ! $invoice->company->canIssueOffline()) {
+            if ($offline?->usesQr() === true && ! $invoice->company->canIssueOffline()) {
                 throw new InvoiceNotReady([__('Request the Offline certificate first (Company settings): it confirms you as the issuer in QR code II.')]);
             }
 
@@ -56,7 +56,7 @@ final class IssueInvoice
 
             try {
                 $sdk = $this->factory->make($invoice, $number);
-                $issued = $offline === null ? $this->online($sdk) : $this->offline($invoice->company, $sdk);
+                $issued = $offline?->usesQr() === true ? $this->offline($invoice->company, $sdk) : $this->online($sdk);
             } catch (ValidationException $e) {
                 // Rolls the number back with everything else.
                 throw new InvoiceNotReady($e->violations !== [] ? $e->violations : [$e->getMessage()]);

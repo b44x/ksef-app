@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\InvoiceStatus;
 use App\Enums\OfflineMode;
 use App\Invoicing\InvoiceNotReady;
+use App\Invoicing\InvoiceQr;
 use App\Invoicing\IssueInvoice;
 use App\Jobs\SendInvoiceJob;
 use App\Ksef\Availability;
@@ -15,6 +16,8 @@ use App\Ksef\OfflineCertificateRefused;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Pdf\InvoicePdf;
+use App\Pdf\InvoiceView;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -241,5 +244,28 @@ class OfflineInvoiceTest extends TestCase
         $this->ksef->availability = new Availability(AvailabilityState::Maintenance, [], new \DateTimeImmutable);
         app(AvailabilityMonitor::class)->refresh($this->company);
         $this->assertSame('unavailability', $suggested());
+
+        $this->ksef->availability = new Availability(AvailabilityState::TotalFailure, [], new \DateTimeImmutable);
+        app(AvailabilityMonitor::class)->refresh($this->company);
+        $this->assertSame('total_failure', $suggested());
+    }
+
+    public function test_a_total_failure_invoice_needs_no_certificate_and_has_no_qr_codes(): void
+    {
+        $this->company->forceFill(['offline_certificate' => null, 'offline_certificate_expires_at' => null])->save();
+
+        $invoice = $this->issueOffline(OfflineMode::TotalFailure, '2026-12-01');
+
+        $this->assertSame(InvoiceStatus::Issued, $invoice->status);
+        $this->assertSame('FV/001/2026', $invoice->number);
+        $this->assertNull($invoice->verification_url);
+        $this->assertNull($invoice->issuer_url);
+        $this->assertNull(app(InvoiceQr::class)->for($invoice));
+        $this->assertSame('2026-12-10', $invoice->offline_deadline->setTimezone('Europe/Warsaw')->format('Y-m-d'), 'Counted like a failure: seven business days after it ends.');
+
+        $modes = collect($this->get("/invoices/{$this->draft()->id}/edit")->viewData('page')['props']['offline']['modes'])->pluck('needs_certificate', 'value');
+        $this->assertFalse($modes['total_failure']);
+        $this->assertTrue($modes['offline24']);
+        $this->assertStringNotContainsString('data:image', app(InvoicePdf::class)->html(app(InvoiceView::class)->sales($invoice), 'pl'));
     }
 }

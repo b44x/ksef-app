@@ -51,14 +51,18 @@ final class InvoicePdf
         }
     }
 
-    /** The total in words, as Polish invoices have it: only for złoty, and only in Polish. */
+    /**
+     * The total in words, as Polish invoices have it: only for złoty, and only in Polish.
+     *
+     * @param  array<string, mixed>  $invoice
+     */
     private function words(array $invoice, string $locale): ?string
     {
         if ($locale !== 'pl' || $invoice['currency'] !== 'PLN' || ! isset($invoice['total']['gross'])) {
             return null;
         }
 
-        return PolishAmountInWords::pln(Decimal::of($invoice['total']['gross']));
+        return PolishAmountInWords::pln(Decimal::of((string) $invoice['total']['gross']));
     }
 
     /**

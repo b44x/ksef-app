@@ -9,7 +9,7 @@ import { Alert } from './Ui';
 
 export interface OfflineOptions {
     available: boolean;
-    modes: { value: string; label: string; hint: string; needs_anchor: boolean }[];
+    modes: { value: string; label: string; hint: string; needs_anchor: boolean; needs_certificate: boolean }[];
     suggested: string;
 }
 
@@ -54,10 +54,11 @@ export function OfflineIssueDialog({
                     {offline.modes.map((m) => (
                         <label
                             key={m.value}
-                            className={`flex cursor-pointer gap-3 rounded-lg border p-3 ${mode === m.value ? 'border-primary bg-primary-soft' : 'border-border'}`}
+                            className={`flex gap-3 rounded-lg border p-3 ${mode === m.value ? 'border-primary bg-primary-soft' : 'border-border'} ${m.needs_certificate && !offline.available ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                         >
                             <input
                                 type="radio"
+                                disabled={m.needs_certificate && !offline.available}
                                 name="offline-mode"
                                 className="mt-1 accent-[var(--primary)]"
                                 checked={mode === m.value}
@@ -75,6 +76,13 @@ export function OfflineIssueDialog({
                         </label>
                     ))}
                 </fieldset>
+                {!offline.available && (
+                    <Alert tone="warning">
+                        {t(
+                            'Without the Offline certificate only a total failure can be issued. Request the certificate in Company settings while KSeF is up.',
+                        )}
+                    </Alert>
+                )}
                 {chosen?.needs_anchor && (
                     <Field
                         label={t('When did it end?')}
@@ -89,7 +97,7 @@ export function OfflineIssueDialog({
                     <Button variant="secondary" onClick={onClose}>
                         {t('Cancel')}
                     </Button>
-                    <Button onClick={submit}>
+                    <Button onClick={submit} disabled={!chosen || (chosen.needs_certificate && !offline.available)}>
                         <WifiOff className="size-4" />
                         {t('Issue offline')}
                     </Button>

@@ -349,5 +349,8 @@
     "Download PDF": "Pobierz PDF",
     "Download PDF in English": "Pobierz PDF po angielsku",
     "Download PDF in Polish": "Pobierz PDF po polsku",
-    "This invoice cannot be shown by this version.": "Ta wersja nie potrafi pokazać tej faktury."
+    "This invoice cannot be shown by this version.": "Ta wersja nie potrafi pokazać tej faktury.",
+    "KSeF total failure (announced)": "Awaria całkowita KSeF (ogłoszona)",
+    "No QR codes and no Offline certificate. Deliver within seven business days after the failure ends, unless the Ministry says otherwise.": "Bez kodów QR i bez certyfikatu Offline. Dostarcz w ciągu siedmiu dni roboczych od końca awarii, chyba że Ministerstwo ogłosi inaczej.",
+    "Without the Offline certificate only a total failure can be issued. Request the certificate in Company settings while KSeF is up.": "Bez certyfikatu Offline można wystawić tylko fakturę w trybie awarii całkowitej. Poproś o certyfikat w ustawieniach firmy, gdy KSeF działa."
 }
