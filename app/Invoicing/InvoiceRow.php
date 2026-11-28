@@ -9,16 +9,16 @@ use App\Models\Invoice;
 final class InvoiceRow
 {
     /**
-     * @return array{id: int, number: string|null, status: string, status_label: string, status_tone: string, offline: bool, offline_deadline: string|null, issue_date: string, contractor: string, currency: string, gross: string}
+     * @return array{id: int, number: string|null, status: string, status_label: string, status_tone: string, offline: bool, offline_deadline: string|null, issue_date: string, contractor: string, currency: string, gross: string, payment_status: string|null, payment_label: string|null, payment_tone: string|null, outstanding: string|null, due_date: string|null, overdue: bool}
      */
     public static function of(Invoice $invoice): array
     {
-        $lines = $invoice->lines->map(fn ($l): array => [
-            'name' => $l->name,
-            'quantity' => $l->quantity,
-            'unit_net_price' => $l->unit_net_price,
-            'vat_rate' => $l->vat_rate,
-        ])->all();
+        // The sum fixed when it was issued; a draft has none yet, so it is worked out from its lines.
+        $gross = $invoice->gross_total ?? Totals::of(
+            $invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all(),
+            $invoice->currency,
+        )['gross'];
+        $issued = ! $invoice->isDraft();
 
         return [
             'id' => $invoice->id,
@@ -31,7 +31,13 @@ final class InvoiceRow
             'issue_date' => $invoice->issue_date->toDateString(),
             'contractor' => $invoice->contractor->name,
             'currency' => $invoice->currency,
-            'gross' => Totals::of($lines, $invoice->currency)['gross'],
+            'gross' => $gross,
+            'payment_status' => $issued ? $invoice->paymentStatus()->value : null,
+            'payment_label' => $issued ? $invoice->paymentStatus()->label() : null,
+            'payment_tone' => $issued ? $invoice->paymentStatus()->tone() : null,
+            'outstanding' => $issued ? $invoice->outstanding()->toString(2) : null,
+            'due_date' => $invoice->due_date?->toDateString(),
+            'overdue' => $invoice->isOverdue(),
         ];
     }
 }

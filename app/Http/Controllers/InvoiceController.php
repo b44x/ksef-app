@@ -47,7 +47,7 @@ class InvoiceController extends Controller
             return redirect()->route('company.edit');
         }
 
-        $invoices = $company->invoices()->with(['contractor:id,name', 'lines'])->orderByDesc('issue_date')->orderByDesc('id')->get();
+        $invoices = $company->invoices()->with(['contractor:id,name', 'lines'])->withSum('payments', 'amount')->orderByDesc('issue_date')->orderByDesc('id')->get();
 
         return Inertia::render('Invoices', [
             'invoices' => $invoices->map(fn (Invoice $i): array => InvoiceRow::of($i)),
@@ -128,6 +128,17 @@ class InvoiceController extends Controller
                 'deadline' => $invoice->offline_deadline?->toIso8601String(),
                 'overdue' => $invoice->offline_deadline !== null && $invoice->offline_deadline->isPast() && $invoice->status === InvoiceStatus::Issued,
             ],
+            'payment' => [
+                'status' => $invoice->paymentStatus()->value,
+                'label' => $invoice->paymentStatus()->label(),
+                'tone' => $invoice->paymentStatus()->tone(),
+                'overdue' => $invoice->isOverdue(),
+                'gross' => $invoice->gross_total,
+                'paid' => $invoice->paidAmount()->toString(2),
+                'outstanding' => $invoice->outstanding()->toString(2),
+                'items' => $invoice->payments->map(fn ($p): array => ['id' => $p->id, 'amount' => $p->amount, 'paid_on' => $p->paid_on->toDateString(), 'note' => $p->note])->all(),
+            ],
+            'today' => now()->toDateString(),
             'qr' => app(InvoiceQr::class)->for($invoice->loadMissing('company')),
             'canSend' => $invoice->status === InvoiceStatus::Issued && ! $invoice->company->needsSigningIn(),
             'needsSigning' => $invoice->company->needsSigningIn(),

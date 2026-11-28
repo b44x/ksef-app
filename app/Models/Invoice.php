@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\OfflineMode;
+use App\Enums\PaymentStatus;
 use App\Ksef\Submission;
+use B4x\Ksef\Support\Decimal;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +28,9 @@ use Illuminate\Support\Carbon;
  * @property int|null $payment_method
  * @property string|null $bank_account
  * @property string|null $notes
+ * @property string|null $net_total
+ * @property string|null $vat_total
+ * @property string|null $gross_total
  * @property string|null $xml
  * @property array{seller: array<string, string|null>, buyer: array<string, string|null>}|null $snapshot
  * @property Carbon|null $issued_at
@@ -59,6 +64,9 @@ class Invoice extends Model
             'issue_date' => 'date',
             'sale_date' => 'date',
             'due_date' => 'date',
+            'net_total' => 'decimal:2',
+            'vat_total' => 'decimal:2',
+            'gross_total' => 'decimal:2',
             'snapshot' => 'array',
             'issued_at' => 'datetime',
             'offline_mode' => OfflineMode::class,
@@ -99,6 +107,52 @@ class Invoice extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(InvoiceLine::class)->orderBy('position');
+    }
+
+    /**
+     * @return HasMany<Payment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class)->orderBy('paid_on')->orderBy('id');
+    }
+
+    /** What has been paid so far. Uses the sum a list query loaded (withSum) when there is one. */
+    public function paidAmount(): Decimal
+    {
+        $sum = $this->getAttributes()['payments_sum_amount'] ?? $this->payments()->sum('amount');
+
+        return Decimal::of(number_format((float) $sum, 2, '.', ''));
+    }
+
+    /** What is still owed: the gross total less the payments (never below zero; an overpayment is shown as paid). */
+    public function outstanding(): Decimal
+    {
+        if ($this->gross_total === null) {
+            return Decimal::zero();
+        }
+        $left = Decimal::of($this->gross_total)->subtract($this->paidAmount());
+
+        return $left->isNegative() ? Decimal::zero() : $left;
+    }
+
+    public function paymentStatus(): PaymentStatus
+    {
+        $paid = $this->paidAmount();
+        if ($this->gross_total === null || $paid->isZero()) {
+            return PaymentStatus::Unpaid;
+        }
+
+        return $this->outstanding()->isZero() ? PaymentStatus::Paid : PaymentStatus::Partial;
+    }
+
+    /** Past the due date and not paid in full. Drafts and invoices without a due date are never late. */
+    public function isOverdue(): bool
+    {
+        return ! $this->isDraft()
+            && $this->due_date !== null
+            && $this->due_date->endOfDay()->isPast()
+            && ! $this->outstanding()->isZero();
     }
 
     /**

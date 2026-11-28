@@ -13,6 +13,7 @@ use App\Http\Controllers\LogoController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\NumberingSeriesController;
 use App\Http\Controllers\OfflineCertificateController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SetupController;
@@ -65,6 +66,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/check', [InvoiceController::class, 'check'])->name('invoices.check');
     Route::post('/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
     Route::get('/invoices/{invoice}/upo', [InvoiceController::class, 'upo'])->name('invoices.upo');
+    Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/invoices/{invoice}/payments/settle', [PaymentController::class, 'settle'])->name('payments.settle');
+    Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
     Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::get('/invoices/{invoice}/xml', [InvoiceController::class, 'xml'])->name('invoices.xml');
     Route::resource('invoices', InvoiceController::class);

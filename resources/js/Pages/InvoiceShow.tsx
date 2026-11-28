@@ -2,6 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import { CheckCircle2, CircleDashed, Copy, CopyPlus, Download, Loader2, RefreshCw, Send, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PdfLinks } from '../Components/PdfLinks';
+import { type PaymentInfo, PaymentsCard } from '../Components/PaymentsCard';
 import { Button, ButtonLink } from '../Components/Button';
 import { type Party, PartyBlock } from '../Components/PartyBlock';
 import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
@@ -39,6 +40,8 @@ interface Props {
         };
     };
     totals: TotalsPreview;
+    payment: PaymentInfo;
+    today: string;
     canSend: boolean;
     needsSigning: boolean;
     offline: {
@@ -101,7 +104,7 @@ function Delivery({ invoice }: { invoice: Props['invoice'] }) {
     );
 }
 
-export default function InvoiceShow({ invoice, totals, canSend, needsSigning, offline, qr }: Props) {
+export default function InvoiceShow({ invoice, totals, payment, today, canSend, needsSigning, offline, qr }: Props) {
     const t = useT();
     const money = useMoney();
     const { errors, locale } = usePage<SharedProps>().props as SharedProps & { errors: Record<string, string> };
@@ -375,6 +378,8 @@ export default function InvoiceShow({ invoice, totals, canSend, needsSigning, of
                     </div>
                 </div>
             </div>
+
+            <PaymentsCard invoiceId={invoice.id} currency={invoice.currency} payment={payment} today={today} />
 
             {qr && (
                 <Card

@@ -62,7 +62,12 @@ final class IssueInvoice
                 throw new InvoiceNotReady($e->violations !== [] ? $e->violations : [$e->getMessage()]);
             }
 
+            $totals = Totals::of($invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all(), $invoice->currency);
+
             $invoice->forceFill([
+                'net_total' => $totals['net'],
+                'vat_total' => $totals['vat'],
+                'gross_total' => $totals['gross'],
                 'number' => $number,
                 'xml' => $issued['xml'],
                 'snapshot' => $this->snapshot($invoice),
