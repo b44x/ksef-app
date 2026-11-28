@@ -43,8 +43,13 @@ final class ReportPeriod
         if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
             return null;
         }
-        $date = CarbonImmutable::createFromFormat('Y-m-d', $value);
+        try {
+            $date = CarbonImmutable::createFromFormat('Y-m-d', $value);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
 
-        return $date === false ? null : $date->startOfDay();
+        // 2026-02-30 has the shape of a date and is not one: Carbon would roll it over to March.
+        return $date?->format('Y-m-d') === $value ? $date->startOfDay() : null;
     }
 }

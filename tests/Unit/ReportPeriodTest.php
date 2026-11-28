@@ -9,6 +9,9 @@ use PHPUnit\Framework\TestCase;
 
 class ReportPeriodTest extends TestCase
 {
+    /**
+     * @param  array<string, mixed>  $input
+     */
     private function range(array $input): string
     {
         $p = ReportPeriod::resolve($input, CarbonImmutable::parse('2026-02-15'));
@@ -40,6 +43,7 @@ class ReportPeriodTest extends TestCase
         $this->assertSame('this_month 2026-02-01..2026-02-28', $this->range(['period' => 'custom', 'from' => '2026-01-10']));
         $this->assertSame('this_month 2026-02-01..2026-02-28', $this->range(['period' => 'custom', 'from' => 'x', 'to' => 'y']));
         $this->assertSame('this_month 2026-02-01..2026-02-28', $this->range(['period' => 'forever']));
+        $this->assertSame('this_month 2026-02-01..2026-02-28', $this->range(['period' => 'custom', 'from' => '2026-13-45', 'to' => '2026-02-30']));
     }
 
     public function test_the_csv_is_excel_ready_and_formulas_are_written_as_text(): void

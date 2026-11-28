@@ -61,7 +61,7 @@ final class GenerateRecurring
         $invoice->recurring_invoice_id = $schedule->id;
         $invoice->save();
 
-        foreach (array_values($schedule->lines) as $position => $line) {
+        foreach ($schedule->lines as $position => $line) {
             $invoice->lines()->create($line + ['position' => $position + 1]);
         }
 

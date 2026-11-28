@@ -39,6 +39,9 @@ class RecurringTest extends TestCase
         return app(IssueInvoice::class)($invoice);
     }
 
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
     private function schedule(array $overrides = []): RecurringInvoice
     {
         $this->post('/invoices/'.$this->source()->id.'/recurring', $overrides + ['name' => 'Abonament', 'frequency' => 'monthly', 'next_run_on' => '2026-12-05', 'auto_issue' => false])->assertSessionHasNoErrors();
