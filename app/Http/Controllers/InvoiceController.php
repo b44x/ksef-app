@@ -488,6 +488,12 @@ class InvoiceController extends Controller
             ],
             'templates' => $company->templates()->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'is_default']),
             'today' => now()->toDateString(),
+            'defaults' => [
+                'payment_days' => $company->default_payment_days,
+                'payment_method' => $company->default_payment_method === null ? '6' : (string) $company->default_payment_method,
+                'bank_account' => $company->default_bank_account ?? '',
+                'notes' => $company->default_notes ?? '',
+            ],
             'defaultSeriesId' => $company->numberingSeries()->where('is_default', true)->value('id'),
             'contractors' => $company->contractors()->orderBy('name')->get(['id', 'name', 'nip', 'address_line1', 'address_line2', 'country']),
             'series' => $company->numberingSeries()->orderBy('name')->get(['id', 'name']),

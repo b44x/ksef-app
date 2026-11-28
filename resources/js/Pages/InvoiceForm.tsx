@@ -52,7 +52,14 @@ interface Props {
     vatRates: string[];
     paymentMethods: { value: string; label: string }[];
     templates: { id: number; name: string; is_default: boolean }[];
+    defaults: { payment_days: number | null; payment_method: string; bank_account: string; notes: string };
     offline: OfflineOptions;
+}
+
+/** The date $days after $day (both Y-m-d); empty when there is no payment term. */
+function addDays(day: string, days: number | null): string {
+    if (days === null) return '';
+    return new Date(new Date(`${day}T00:00:00Z`).getTime() + days * 86_400_000).toISOString().slice(0, 10);
 }
 
 const blankLine: InvoiceLineForm = { name: '', unit: 'szt.', quantity: '1', unit_net_price: '', vat_rate: '23' };
@@ -77,6 +84,7 @@ export default function InvoiceForm({
     vatRates,
     paymentMethods,
     templates,
+    defaults,
     offline,
 }: Props) {
     const t = useT();
@@ -86,10 +94,10 @@ export default function InvoiceForm({
         numbering_series_id: invoice?.numbering_series_id ?? defaultSeriesId ?? ('' as number | ''),
         issue_date: invoice?.issue_date ?? today,
         sale_date: invoice?.sale_date ?? '',
-        due_date: invoice?.due_date ?? '',
-        payment_method: invoice?.payment_method ?? '6',
-        bank_account: invoice?.bank_account ?? '',
-        notes: invoice?.notes ?? '',
+        due_date: invoice?.due_date ?? addDays(today, defaults.payment_days),
+        payment_method: invoice?.payment_method ?? defaults.payment_method,
+        bank_account: invoice?.bank_account ?? defaults.bank_account,
+        notes: invoice?.notes ?? defaults.notes,
         invoice_template_id: invoice?.invoice_template_id ?? '',
         correction_reason: invoice?.correction?.reason ?? '',
         correction_type: invoice?.correction?.type ?? '1',

@@ -3,6 +3,7 @@ import { Check, WifiOff } from 'lucide-react';
 import { Button } from '../Components/Button';
 import ConnectionReport from '../Components/ConnectionReport';
 import { Field, Input, Select, Textarea } from '../Components/Form';
+import { type Defaults, DefaultsCard } from '../Components/DefaultsCard';
 import { type Notifications, NotificationsCard } from '../Components/NotificationsCard';
 import { Alert, Card, PageHeader } from '../Components/Ui';
 import { useT } from '../i18n';
@@ -27,11 +28,21 @@ interface Props {
     } | null;
     offline: { has: boolean; expires_at: string | null; usable: boolean } | null;
     notifications: Notifications | null;
+    defaults: Defaults | null;
+    paymentMethods: Option[];
     environments: Option[];
     methods: Option[];
 }
 
-export default function Company({ company, offline, notifications, environments, methods }: Props) {
+export default function Company({
+    company,
+    offline,
+    notifications,
+    defaults,
+    paymentMethods,
+    environments,
+    methods,
+}: Props) {
     const t = useT();
     const {
         report,
@@ -250,6 +261,8 @@ export default function Company({ company, offline, notifications, environments,
                     </div>
                 </Card>
             )}
+
+            {company && defaults && <DefaultsCard defaults={defaults} paymentMethods={paymentMethods} />}
 
             {company && notifications && <NotificationsCard notifications={notifications} />}
 

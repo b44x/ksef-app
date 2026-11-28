@@ -6,6 +6,7 @@ use App\Http\Controllers\ContractorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\InvoiceDefaultsController;
 use App\Http\Controllers\KsefSignInController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
@@ -56,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/templates/{template}', [TemplateController::class, 'update'])->name('templates.update');
     Route::post('/templates/{template}/default', [TemplateController::class, 'makeDefault'])->name('templates.default');
     Route::delete('/templates/{template}', [TemplateController::class, 'destroy'])->name('templates.destroy');
+    Route::put('/company/defaults', [InvoiceDefaultsController::class, 'update'])->name('defaults.update');
     Route::put('/company/notifications', [NotificationSettingsController::class, 'update'])->name('notifications.update');
     Route::post('/company/notifications/test', [NotificationSettingsController::class, 'test'])->name('notifications.test');
     Route::post('/company/offline-certificate', [OfflineCertificateController::class, 'store'])->name('offline-certificate.store');

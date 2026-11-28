@@ -6,8 +6,10 @@ use App\Actions\SaveCompany;
 use App\Enums\AuthMethod;
 use App\Enums\KsefEnvironment;
 use App\Http\Requests\CompanyRequest;
+use App\Invoicing\PaymentLabel;
 use App\Ksef\KsefGateway;
 use App\Models\Company;
+use B4x\Ksef\Invoice\PaymentMethod;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,6 +34,13 @@ class CompanyController extends Controller
             ],
             'offline' => $company === null ? null : ['has' => $company->offline_certificate !== null, 'expires_at' => $company->offline_certificate_expires_at?->toIso8601String(), 'usable' => $company->canIssueOffline()],
             'notifications' => $company === null ? null : ['email' => $company->notify_email ?? '', 'offline' => $company->notify_offline, 'purchases' => $company->notify_purchases, 'rejected' => $company->notify_rejected],
+            'defaults' => $company === null ? null : [
+                'payment_days' => $company->default_payment_days === null ? '' : (string) $company->default_payment_days,
+                'payment_method' => $company->default_payment_method === null ? '' : (string) $company->default_payment_method,
+                'bank_account' => $company->default_bank_account ?? '',
+                'notes' => $company->default_notes ?? '',
+            ],
+            'paymentMethods' => array_map(fn (PaymentMethod $m): array => ['value' => (string) $m->value, 'label' => __(PaymentLabel::of($m))], PaymentMethod::cases()),
             'environments' => array_map(fn (KsefEnvironment $e): array => ['value' => $e->value, 'label' => $e->label()], KsefEnvironment::cases()),
             'methods' => array_map(fn (AuthMethod $m): array => ['value' => $m->value, 'label' => $m->label()], AuthMethod::cases()),
         ]);

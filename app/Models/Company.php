@@ -31,6 +31,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $purchases_sync_error
  * @property string|null $notify_email
  * @property string|null $logo
+ * @property int|null $default_payment_days
+ * @property int|null $default_payment_method
+ * @property string|null $default_bank_account
+ * @property string|null $default_notes
  * @property bool $notify_offline
  * @property bool $notify_purchases
  * @property bool $notify_rejected

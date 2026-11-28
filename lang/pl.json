@@ -540,5 +540,11 @@
     "Open the corrected invoice": "Otwórz korygowaną fakturę",
     "Reason": "Przyczyna",
     "Corrections": "Korekty",
-    "correction": "korekta"
+    "correction": "korekta",
+    "Invoice defaults": "Ustawienia domyślne faktur",
+    "A new invoice starts with these. You can change them on each invoice.": "Nowa faktura zaczyna od tych wartości. Na każdej fakturze możesz je zmienić.",
+    "Payment term (days)": "Termin płatności (dni)",
+    "Leave empty for no due date.": "Zostaw puste, jeśli nie ma terminu płatności.",
+    "Not set": "Nie ustawiono",
+    "The defaults were saved.": "Ustawienia domyślne zostały zapisane."
 }
