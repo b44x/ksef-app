@@ -17,6 +17,7 @@ final class InvoiceRow
         $gross = $invoice->gross_total ?? Totals::of(
             $invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all(),
             $invoice->currency,
+            $invoice->isCorrection() ? $invoice->stateBefore()->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all() : [],
         )['gross'];
         $issued = $invoice->isSale();
 

@@ -52,7 +52,7 @@ class InvoiceController extends Controller
             return redirect()->route('company.edit');
         }
 
-        $invoices = $company->invoices()->with(['contractor:id,name', 'lines'])->withSum('payments', 'amount')->orderByDesc('issue_date')->orderByDesc('id')->get();
+        $invoices = $company->invoices()->with('contractor:id,name')->withSum('payments', 'amount')->orderByDesc('issue_date')->orderByDesc('id')->get();
 
         return Inertia::render('Invoices', [
             'invoices' => $invoices->map(fn (Invoice $i): array => InvoiceRow::of($i)),

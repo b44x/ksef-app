@@ -20,7 +20,7 @@ class DashboardController extends Controller
             return redirect()->route('company.edit');
         }
 
-        $recent = $company->invoices()->with(['contractor:id,name', 'lines'])->withSum('payments', 'amount')->orderByDesc('issue_date')->orderByDesc('id')->limit(5)->get();
+        $recent = $company->invoices()->with('contractor:id,name')->withSum('payments', 'amount')->orderByDesc('issue_date')->orderByDesc('id')->limit(5)->get();
 
         $report = new SalesReport($company);
         $month = CarbonImmutable::today();
