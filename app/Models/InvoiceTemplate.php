@@ -33,7 +33,11 @@ class InvoiceTemplate extends Model
         return $this->belongsTo(Company::class);
     }
 
-    /** The settings, complete and valid whatever is stored. */
+    /**
+     * The settings, complete and valid whatever is stored.
+     *
+     * @return array<string, mixed>
+     */
     public function resolved(): array
     {
         return TemplateSettings::clean($this->settings);
