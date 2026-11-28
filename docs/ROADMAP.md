@@ -14,7 +14,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Contractors
 - [x] Products, numbering series (a number is never handed out twice)
 - [x] Invoice draft: lines, VAT rates, live totals from the SDK, checks in words before sending
-- [ ] Issue (take the number, build the FA(3), validate), corrections, advance and settlement invoices
+- [x] Issue: the number from the series, the FA(3) built and schema-validated by the SDK, both frozen; XML download
+- [ ] Corrections, advance and settlement invoices
 - [ ] Send in the background, follow the status, keep the UPO and the KSeF number
 - [ ] Invoice view with the QR code; download the XML
 

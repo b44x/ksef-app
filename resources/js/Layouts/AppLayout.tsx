@@ -1,6 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { Building2, FilePlus2, FileText, Hash, LayoutDashboard, LogOut, Menu, Package, Users, X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
+import { Footer } from '../Components/Footer';
 import { Toast } from '../Components/Toast';
 import { useT } from '../i18n';
 import type { SharedProps } from '../types';
@@ -135,6 +136,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <div className="lg:pl-60">
                 <TopBar onMenu={() => setOpen(true)} />
                 <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8">{children}</main>
+                <Footer className="border-t border-border px-4 py-6 sm:px-8" />
             </div>
             <Toast />
         </div>

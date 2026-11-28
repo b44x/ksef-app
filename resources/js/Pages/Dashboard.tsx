@@ -103,7 +103,7 @@ export default function Dashboard({ stats, recent, details }: Props) {
                                     <tr key={i.id}>
                                         <td>
                                             <a
-                                                href={`/invoices/${i.id}/edit`}
+                                                href={`/invoices/${i.id}`}
                                                 className="font-medium text-primary hover:underline"
                                             >
                                                 {i.number ?? t('Draft')}

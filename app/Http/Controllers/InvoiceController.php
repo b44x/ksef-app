@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ScopedToCompany;
 use App\Http\Requests\InvoiceRequest;
 use App\Invoicing\InvoiceCheck;
+use App\Invoicing\InvoiceNotReady;
 use App\Invoicing\InvoiceRow;
+use App\Invoicing\IssueInvoice;
 use App\Invoicing\SdkInvoiceFactory;
 use App\Invoicing\Totals;
 use App\Models\Company;
@@ -18,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceController extends Controller
 {
@@ -47,11 +50,77 @@ class InvoiceController extends Controller
         return $this->form($company, null);
     }
 
-    public function edit(Invoice $invoice): Response
+    public function edit(Invoice $invoice): Response|RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+        if (! $invoice->isDraft()) {
+            return redirect()->route('invoices.show', $invoice);
+        }
+
+        return $this->form($invoice->company, $invoice->load(['lines', 'company', 'contractor', 'series']));
+    }
+
+    public function show(Invoice $invoice): Response|RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+        if ($invoice->isDraft()) {
+            return redirect()->route('invoices.edit', $invoice);
+        }
+
+        $invoice->load(['lines', 'series']);
+        $lines = $invoice->lines->map(fn ($l): array => [
+            'name' => $l->name,
+            'unit' => $l->unit ?? '',
+            'quantity' => SdkInvoiceFactory::trim($l->quantity),
+            'unit_net_price' => SdkInvoiceFactory::trim($l->unit_net_price),
+            'vat_rate' => $l->vat_rate,
+        ])->all();
+
+        return Inertia::render('InvoiceShow', [
+            'invoice' => [
+                'id' => $invoice->id,
+                'number' => $invoice->number,
+                'status' => $invoice->status->value,
+                'status_label' => $invoice->status->label(),
+                'issue_date' => $invoice->issue_date->toDateString(),
+                'sale_date' => $invoice->sale_date?->toDateString(),
+                'due_date' => $invoice->due_date?->toDateString(),
+                'payment_method' => $invoice->payment_method === null ? null : self::methodLabel(PaymentMethod::from($invoice->payment_method)),
+                'bank_account' => $invoice->bank_account,
+                'notes' => $invoice->notes,
+                'currency' => $invoice->currency,
+                'issued_at' => $invoice->issued_at?->toIso8601String(),
+                'parties' => $invoice->snapshot,
+                'lines' => $lines,
+                'xml' => self::pretty((string) $invoice->xml),
+            ],
+            'totals' => Totals::of($lines, $invoice->currency),
+        ]);
+    }
+
+    public function issue(Invoice $invoice, IssueInvoice $issue): RedirectResponse
     {
         $this->authorizeOwnership($invoice);
 
-        return $this->form($invoice->company, $invoice->load(['lines', 'company', 'contractor', 'series']));
+        try {
+            $issued = $issue($invoice);
+        } catch (InvoiceNotReady $e) {
+            return back()->withErrors(['issue' => implode("\n", $e->problems)]);
+        }
+
+        return redirect()->route('invoices.show', $issued)->with('status', __('Invoice issued: :number', ['number' => (string) $issued->number]));
+    }
+
+    public function xml(Invoice $invoice): StreamedResponse
+    {
+        $this->authorizeOwnership($invoice);
+        abort_if($invoice->xml === null, 404);
+
+        $name = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $invoice->number).'.xml';
+
+        return response()->streamDownload(function () use ($invoice): void {
+            echo $invoice->xml;
+        }, $name, ['Content-Type' => 'application/xml; charset=utf-8']);
     }
 
     public function store(InvoiceRequest $request): RedirectResponse
@@ -154,6 +223,16 @@ class InvoiceController extends Controller
         foreach ($lines as $position => $line) {
             $invoice->lines()->create([...$line, 'position' => $position + 1, 'unit' => $line['unit'] ?? null]);
         }
+    }
+
+    /** The document indented for reading. Only for display: what is stored and downloaded is byte for byte what KSeF gets. */
+    private static function pretty(string $xml): string
+    {
+        $dom = new \DOMDocument;
+        $dom->preserveWhiteSpace = false;
+        $dom->formatOutput = true;
+
+        return $dom->loadXML($xml) ? (string) $dom->saveXML() : $xml;
     }
 
     private static function methodLabel(PaymentMethod $method): string

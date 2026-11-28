@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { AlertTriangle, CheckCircle2, Plus, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileCheck2, Plus, Save, Trash2 } from 'lucide-react';
 import { Button } from '../Components/Button';
 import { Field, Input, Select, Textarea } from '../Components/Form';
 import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
@@ -123,6 +123,13 @@ export default function InvoiceForm({
     const field =
         (name: 'issue_date' | 'sale_date' | 'due_date' | 'bank_account') => (e: React.ChangeEvent<HTMLInputElement>) =>
             form.setData(name, e.target.value);
+    // Issuing works on what is saved: only offered when the form matches the saved draft and nothing is in the way.
+    const canIssue = invoice !== null && !form.isDirty && invoice.problems.length === 0;
+    const issue = () => {
+        if (invoice && window.confirm(t('Issue this invoice? It gets its number and can no longer be changed.'))) {
+            router.post(`/invoices/${invoice.id}/issue`);
+        }
+    };
     const number = invoice ? invoice.preview_number : t('Number is given when you issue the invoice');
 
     return (
@@ -138,13 +145,33 @@ export default function InvoiceForm({
                                 {t('Delete')}
                             </Button>
                         )}
-                        <Button type="submit" form="invoice-form" disabled={form.processing || missingCatalog}>
+                        <Button
+                            type="submit"
+                            form="invoice-form"
+                            variant={canIssue ? 'secondary' : 'primary'}
+                            disabled={form.processing || missingCatalog}
+                        >
                             <Save className="size-4" />
                             {t('Save draft')}
                         </Button>
+                        {canIssue && (
+                            <Button onClick={issue}>
+                                <FileCheck2 className="size-4" />
+                                {t('Issue invoice')}
+                            </Button>
+                        )}
                     </>
                 }
             />
+
+            {errors.issue && (
+                <div className="mb-6">
+                    <Alert tone="danger">
+                        <div className="mb-1 font-medium">{t('The invoice could not be issued:')}</div>
+                        <div className="whitespace-pre-line">{errors.issue}</div>
+                    </Alert>
+                </div>
+            )}
 
             {missingCatalog && (
                 <div className="mb-6">

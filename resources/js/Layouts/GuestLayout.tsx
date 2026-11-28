@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { Footer } from '../Components/Footer';
 import { Toast } from '../Components/Toast';
 import { useT } from '../i18n';
 import type { SharedProps } from '../types';
@@ -44,6 +45,7 @@ export default function GuestLayout({
                     ))}
                 </select>
             </form>
+            <Footer className="mt-8" />
             <Toast />
         </div>
     );

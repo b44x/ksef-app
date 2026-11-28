@@ -15,8 +15,8 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 | ![Dashboard](docs/screenshots/02-dashboard.png) | ![Invoice draft](docs/screenshots/08-invoice-draft.png) |
 | **Polish, same screen** | **Dark theme (follows the system)** |
 | ![Szkic faktury](docs/screenshots/09-invoice-draft-pl.png) | ![Dark theme](docs/screenshots/13-invoice-draft-dark.png) |
-| **Contractors** | **On a phone** |
-| ![Contractors](docs/screenshots/04-contractors.png) | ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) |
+| **Issued invoice with its FA(3) document** | **On a phone** |
+| ![Issued invoice](docs/screenshots/16-invoice-issued.png) | ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) |
 
 The totals next to the lines are computed by the SDK as you type, never in the browser.
 

@@ -26,7 +26,7 @@ class AuthenticationTest extends TestCase
     {
         $this->get('/')->assertRedirect(route('login'));
         $this->get('/login')->assertRedirect(route('setup'));
-        $this->get('/setup')->assertInertia(fn (Assert $page) => $page->component('Setup'));
+        $this->get('/setup')->assertInertia(fn (Assert $page) => $page->component('Setup')->where('credits.author', 'Michell Hoduń')->where('credits.url', 'https://github.com/b44x/ksef-app'));
 
         $this->post('/setup', $this->setupData())->assertRedirect(route('company.edit'));
 

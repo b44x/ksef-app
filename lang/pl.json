@@ -176,5 +176,18 @@
     "VAT total": "Suma VAT",
     "Gross total": "Suma brutto",
     "Total": "Razem",
-    "Amount due": "Do zapłaty"
+    "Amount due": "Do zapłaty",
+    "Issued": "Wystawiona",
+    "This invoice has been issued already.": "Ta faktura została już wystawiona.",
+    "Invoice issued: :number": "Wystawiono fakturę: :number",
+    "Issued invoices cannot be changed. The FA(3) document below is what KSeF receives.": "Wystawionych faktur nie można zmieniać. Dokument FA(3) poniżej to to, co otrzymuje KSeF.",
+    "Back to the list": "Wróć do listy",
+    "Download XML": "Pobierz XML",
+    "FA(3) document": "Dokument FA(3)",
+    "The exact XML that is sent to KSeF.": "Dokładnie ten XML jest wysyłany do KSeF.",
+    "Issue invoice": "Wystaw fakturę",
+    "Issue this invoice? It gets its number and can no longer be changed.": "Wystawić tę fakturę? Dostanie numer i nie będzie można jej już zmienić.",
+    "The invoice could not be issued:": "Nie udało się wystawić faktury:",
+    "Open source, :license licence": "Otwarte oprogramowanie, licencja :license",
+    "on GitHub": "na GitHubie"
 }

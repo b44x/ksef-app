@@ -39,6 +39,12 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'app' => ['name' => config('app.name')],
+            'credits' => [
+                'author' => config('credits.author'),
+                'years' => config('credits.since') < (int) date('Y') ? config('credits.since').'–'.date('Y') : (string) config('credits.since'),
+                'url' => config('credits.url'),
+                'license' => config('credits.license'),
+            ],
             'locale' => app()->getLocale(),
             'locales' => config('locales'),
             'translations' => fn () => self::translations(app()->getLocale()),

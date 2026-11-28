@@ -31,7 +31,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/contractors/{contractor}', [ContractorController::class, 'update'])->name('contractors.update');
     Route::delete('/contractors/{contractor}', [ContractorController::class, 'destroy'])->name('contractors.destroy');
     Route::post('/invoices/preview', [InvoiceController::class, 'preview'])->name('invoices.preview');
-    Route::resource('invoices', InvoiceController::class)->except(['show']);
+    Route::post('/invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
+    Route::get('/invoices/{invoice}/xml', [InvoiceController::class, 'xml'])->name('invoices.xml');
+    Route::resource('invoices', InvoiceController::class);
     Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('series', NumberingSeriesController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['series' => 'series']);
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

@@ -23,6 +23,9 @@ use Illuminate\Support\Carbon;
  * @property int|null $payment_method
  * @property string|null $bank_account
  * @property string|null $notes
+ * @property string|null $xml
+ * @property array{seller: array<string, string|null>, buyer: array<string, string|null>}|null $snapshot
+ * @property Carbon|null $issued_at
  */
 #[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes'])]
 class Invoice extends Model
@@ -37,6 +40,8 @@ class Invoice extends Model
             'issue_date' => 'date',
             'sale_date' => 'date',
             'due_date' => 'date',
+            'snapshot' => 'array',
+            'issued_at' => 'datetime',
         ];
     }
 

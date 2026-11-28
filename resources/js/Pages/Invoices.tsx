@@ -57,7 +57,7 @@ export default function Invoices({ invoices }: { invoices: Row[] }) {
                                 <tr key={i.id}>
                                     <td>
                                         <a
-                                            href={`/invoices/${i.id}/edit`}
+                                            href={`/invoices/${i.id}`}
                                             className="font-medium text-primary hover:underline"
                                         >
                                             {i.number ?? t('Draft')}
@@ -69,7 +69,9 @@ export default function Invoices({ invoices }: { invoices: Row[] }) {
                                         {money(i.gross, i.currency)}
                                     </td>
                                     <td>
-                                        <Badge>{i.status_label}</Badge>
+                                        <Badge tone={i.status === 'draft' ? 'warning' : 'primary'}>
+                                            {i.status_label}
+                                        </Badge>
                                     </td>
                                 </tr>
                             ))}
