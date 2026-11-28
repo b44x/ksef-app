@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\OfflineMode;
 use App\Http\Controllers\Concerns\ScopedToCompany;
 use App\Http\Requests\InvoiceRequest;
+use App\Invoicing\Currencies;
 use App\Invoicing\InvoiceCheck;
 use App\Invoicing\InvoiceNotReady;
 use App\Invoicing\InvoiceQr;
@@ -20,12 +21,15 @@ use App\Jobs\SendInvoiceJob;
 use App\Ksef\AvailabilityMonitor;
 use App\Ksef\AvailabilityState;
 use App\Ksef\KsefGateway;
+use App\Lookup\LookupFailed;
+use App\Lookup\NbpRates;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Pdf\InvoicePdf;
 use App\Pdf\InvoiceView;
 use B4x\Ksef\Invoice\PaymentMethod;
 use B4x\Ksef\Invoice\VatRate;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -158,7 +162,8 @@ class InvoiceController extends Controller
             'qr' => app(InvoiceQr::class)->for($invoice->loadMissing('company')),
             'canSend' => $invoice->status === InvoiceStatus::Issued && ! $invoice->company->needsSigningIn(),
             'needsSigning' => $invoice->company->needsSigningIn(),
-            'totals' => Totals::of($lines, $invoice->currency, $before),
+            'totals' => Totals::of($lines, $invoice->currency, $before, $invoice->exchange_rate === null ? null : SdkInvoiceFactory::trim($invoice->exchange_rate)),
+            'exchange' => $invoice->currency === 'PLN' ? null : ['rate' => $invoice->exchange_rate === null ? null : SdkInvoiceFactory::trim($invoice->exchange_rate), 'date' => $invoice->exchange_rate_date?->toDateString()],
         ]);
     }
 
@@ -317,6 +322,18 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.edit', $copy)->with('status', __('A new draft was made from :number.', ['number' => (string) $invoice->number]));
     }
 
+    /** The NBP rate for a currency before a day: what the VAT of a foreign-currency invoice is converted with. */
+    public function rate(Request $request, NbpRates $nbp): JsonResponse
+    {
+        $data = $request->validate(['currency' => ['required', 'in:'.implode(',', array_diff(Currencies::CODES, ['PLN']))], 'date' => ['required', 'date_format:Y-m-d']]);
+
+        try {
+            return response()->json($nbp->before($data['currency'], CarbonImmutable::parse($data['date'])));
+        } catch (LookupFailed $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+    }
+
     /** A draft correction of an accepted invoice, starting from the lines as they stand. An unfinished one is continued, not doubled. */
     public function correct(Invoice $invoice): RedirectResponse
     {
@@ -339,6 +356,8 @@ class InvoiceController extends Controller
                 $draft->company_id = $invoice->company_id;
                 $draft->corrects_invoice_id = $invoice->id;
                 $draft->currency = $invoice->currency;
+                $draft->exchange_rate = $invoice->exchange_rate;
+                $draft->exchange_rate_date = $invoice->exchange_rate_date;
                 $draft->save();
                 foreach ($invoice->currentLines() as $line) {
                     $draft->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']));
@@ -404,6 +423,7 @@ class InvoiceController extends Controller
             if ($invoice->isCorrection()) {
                 // A correction is about the same sale: the buyer and the series do not change.
                 $data['contractor_id'] = $invoice->contractor_id;
+                $data['currency'] = $invoice->currency;
                 $data['correction_type'] = $data['correction_type'] ?? $invoice->correction_type;
             }
             $invoice->update($data);
@@ -429,6 +449,7 @@ class InvoiceController extends Controller
         $data = $request->validate([
             'currency' => ['nullable', 'string', 'size:3'],
             'invoice_id' => ['nullable', 'integer'],
+            'exchange_rate' => ['nullable', 'numeric', 'gt:0', 'decimal:0,6'],
             'lines' => ['present', 'array', 'max:1000'],
             ...InvoiceRequest::lineRules('lines.*.'),
         ]);
@@ -440,7 +461,9 @@ class InvoiceController extends Controller
             $before = $draft->stateBefore()->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all();
         }
 
-        return response()->json(Totals::of($data['lines'], $data['currency'] ?? 'PLN', $before));
+        $currency = $data['currency'] ?? 'PLN';
+
+        return response()->json(Totals::of($data['lines'], $currency, $before, $currency === 'PLN' ? null : ($data['exchange_rate'] ?? null)));
     }
 
     private function form(Company $company, ?Invoice $invoice): Response
@@ -505,6 +528,7 @@ class InvoiceController extends Controller
             'contractors' => $company->contractors()->orderBy('name')->get(['id', 'name', 'nip', 'address_line1', 'address_line2', 'country']),
             'series' => $company->numberingSeries()->orderBy('name')->get(['id', 'name']),
             'products' => $company->products()->orderBy('name')->get(['id', 'name', 'unit', 'net_price', 'vat_rate']),
+            'currencies' => Currencies::CODES,
             'vatRates' => array_map(static fn (VatRate $r): string => $r->value, VatRate::cases()),
             'paymentMethods' => array_map(static fn (PaymentMethod $m): array => ['value' => (string) $m->value, 'label' => __(PaymentLabel::of($m))], PaymentMethod::cases()),
         ]);

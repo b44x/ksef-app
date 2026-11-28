@@ -574,5 +574,14 @@
     "Connect to KSeF": "Połącz się z KSeF",
     "Add your first contractor": "Dodaj pierwszego kontrahenta",
     "Set up a numbering series": "Ustaw serię numeracji",
-    "Issue your first invoice": "Wystaw pierwszą fakturę"
+    "Issue your first invoice": "Wystaw pierwszą fakturę",
+    "The National Bank of Poland could not be reached.": "Nie udało się połączyć z Narodowym Bankiem Polskim.",
+    "The National Bank of Poland has no rate for :currency before :date.": "NBP nie ma kursu :currency sprzed dnia :date.",
+    "Currency": "Waluta",
+    "Exchange rate to PLN": "Kurs do PLN",
+    "NBP rate of": "Kurs NBP z dnia",
+    "NBP table": "Tabela NBP",
+    "VAT in PLN": "VAT w PLN",
+    "Exchange rate": "Kurs waluty",
+    "NBP average rate :rate PLN/:currency of :date": "Średni kurs NBP :rate PLN/:currency z dnia :date"
 }

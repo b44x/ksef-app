@@ -32,7 +32,8 @@ final class InvoiceView
         $lineData = $invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all();
         // A correction shows the corrected invoice as it stood, then as it is now; its sums are the difference.
         $beforeData = $invoice->isCorrection() ? $invoice->stateBefore()->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all() : [];
-        $totals = Totals::of($lineData, $invoice->currency, $beforeData);
+        $rate = $invoice->currency !== 'PLN' && $invoice->exchange_rate !== null ? SdkInvoiceFactory::trim($invoice->exchange_rate) : null;
+        $totals = Totals::of($lineData, $invoice->currency, $beforeData, $rate);
         $row = static fn (array $l, string $net, string $state): array => [
             'name' => $l['name'],
             'unit' => $l['unit'] ?? '',
@@ -73,6 +74,7 @@ final class InvoiceView
                 'gross' => $b['gross'],
             ], $totals['buckets']),
             'total' => ['net' => $totals['net'], 'vat' => $totals['vat'], 'gross' => $totals['gross']],
+            'exchange' => $rate === null ? null : ['rate' => $rate, 'date' => $invoice->exchange_rate_date?->toDateString(), 'vat_pln' => $totals['vat_pln']],
             'payment' => [
                 'method' => $invoice->payment_method === null ? null : PaymentLabel::of(PaymentMethod::from($invoice->payment_method)),
                 'due_date' => $invoice->due_date?->toDateString(),

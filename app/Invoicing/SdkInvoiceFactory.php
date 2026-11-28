@@ -47,6 +47,9 @@ final class SdkInvoiceFactory
                 $contractor->email,
             ));
 
+        if ($invoice->currency !== 'PLN' && $invoice->exchange_rate !== null) {
+            $builder->exchangeRate(self::trim($invoice->exchange_rate));
+        }
         if ($invoice->sale_date !== null) {
             $builder->saleDate($invoice->sale_date);
         }

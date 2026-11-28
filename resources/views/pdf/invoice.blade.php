@@ -142,6 +142,10 @@
 </table>
 <div class="clear"></div>
 
+@if (! empty($i['exchange']))
+    <div class="box"><b>{{ __('Exchange rate') }}</b>{{ __('NBP average rate :rate PLN/:currency of :date', ['rate' => $i['exchange']['rate'], 'currency' => $i['currency'], 'date' => $i['exchange']['date'] ?? '—']) }}@if ($i['exchange']['vat_pln']) &mdash; {{ __('VAT in PLN') }}: {{ $i['exchange']['vat_pln'] }}@endif</div>
+@endif
+
 @if ($words && $show['words'])
     <div class="box"><b>{{ __('In words') }}</b>{{ $words }}</div>
 @endif

@@ -34,6 +34,7 @@ export interface SharedProps {
 }
 
 export interface TotalsPreview {
+    vat_pln?: string | null;
     buckets: { rate: string; net: string; vat: string | null; gross: string }[];
     net: string;
     vat: string;

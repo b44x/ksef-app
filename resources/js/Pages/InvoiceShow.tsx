@@ -67,6 +67,7 @@ interface Props {
         }[];
     };
     email: EmailInfo;
+    exchange: { rate: string | null; date: string | null } | null;
     payment: PaymentInfo;
     today: string;
     canSend: boolean;
@@ -143,6 +144,7 @@ export default function InvoiceShow({
     totals,
     correction,
     email,
+    exchange,
     payment,
     today,
     canSend,
@@ -434,6 +436,22 @@ export default function InvoiceShow({
                                 </tr>
                             </tbody>
                         </table>
+                        {exchange?.rate && (
+                            <div className="mt-3 space-y-1 text-sm text-muted">
+                                <div className="flex justify-between">
+                                    <span>
+                                        {t('Exchange rate')} {exchange.date ? `(${exchange.date})` : ''}
+                                    </span>
+                                    <span className="tabular-nums">{exchange.rate}</span>
+                                </div>
+                                {totals.vat_pln && (
+                                    <div className="flex justify-between">
+                                        <span>{t('VAT in PLN')}</span>
+                                        <span className="tabular-nums">{money(totals.vat_pln, 'PLN')}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div className="mt-4 flex items-baseline justify-between rounded-lg bg-primary-soft px-4 py-3">
                             <span className="font-medium text-primary">{t('Amount due')}</span>
                             <span className="text-2xl font-semibold tabular-nums text-primary">

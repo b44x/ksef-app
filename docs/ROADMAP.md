@@ -53,6 +53,9 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 
 - [x] Backup: one-click download of a consistent SQLite snapshot (restore: put the file back as the database)
 
+- [x] Foreign-currency invoices: currency, NBP rate of the last business day before the sale (fetched), VAT in PLN on the page and PDF
+- [ ] Foreign-currency invoices in the VAT report (sums in PLN)
+
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)
 - [ ] Manual check that the installers start and work on real Windows and macOS machines

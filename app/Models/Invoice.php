@@ -29,6 +29,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $issue_date
  * @property Carbon|null $sale_date
  * @property string $currency
+ * @property string|null $exchange_rate
+ * @property Carbon|null $exchange_rate_date
  * @property Carbon|null $due_date
  * @property int|null $payment_method
  * @property string|null $bank_account
@@ -57,7 +59,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property Carbon|null $accepted_at
  */
-#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type'])]
+#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'currency', 'exchange_rate', 'exchange_rate_date'])]
 class Invoice extends Model
 {
     /** A new invoice is a draft, whether or not it has been read back from the database yet. */
@@ -73,6 +75,8 @@ class Invoice extends Model
             'issue_date' => 'date',
             'sale_date' => 'date',
             'due_date' => 'date',
+            'exchange_rate' => 'decimal:6',
+            'exchange_rate_date' => 'date',
             'net_total' => 'decimal:2',
             'vat_total' => 'decimal:2',
             'gross_total' => 'decimal:2',

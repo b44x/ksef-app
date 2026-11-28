@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Invoicing\Currencies;
 use App\Models\Company;
 use B4x\Ksef\Invoice\PaymentMethod;
 use B4x\Ksef\Invoice\VatRate;
@@ -26,6 +27,9 @@ class InvoiceRequest extends FormRequest
             'contractor_id' => ['required', Rule::exists('contractors', 'id')->where('company_id', $company)],
             'numbering_series_id' => ['required', Rule::exists('numbering_series', 'id')->where('company_id', $company)],
             'issue_date' => ['required', 'date_format:Y-m-d'],
+            'currency' => ['sometimes', Rule::in(Currencies::CODES)],
+            'exchange_rate' => [Rule::requiredIf(fn () => $this->input('currency', 'PLN') !== 'PLN'), 'nullable', 'numeric', 'gt:0', 'decimal:0,6', 'max:9999999'],
+            'exchange_rate_date' => ['nullable', 'date_format:Y-m-d'],
             'sale_date' => ['nullable', 'date_format:Y-m-d'],
             'due_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:issue_date'],
             'payment_method' => ['nullable', Rule::in(array_map(static fn (PaymentMethod $m): int => $m->value, PaymentMethod::cases()))],
@@ -57,10 +61,15 @@ class InvoiceRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        // A złoty invoice has no exchange rate, whatever the form still holds from a currency tried before.
+        if ($this->input('currency', 'PLN') === 'PLN') {
+            $this->merge(['exchange_rate' => null, 'exchange_rate_date' => null]);
+        }
+
         // Empty form fields arrive as empty strings; for dates and the optional text they mean "not given".
         $this->merge(array_map(
             static fn (mixed $v): mixed => $v === '' ? null : $v,
-            $this->only(['sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type']),
+            $this->only(['sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type', 'exchange_rate', 'exchange_rate_date']),
         ));
     }
 }

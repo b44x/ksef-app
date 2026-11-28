@@ -24,6 +24,9 @@ interface Props {
         bank_account: string;
         notes: string;
         invoice_template_id: string;
+        currency: string;
+        exchange_rate: string;
+        exchange_rate_date: string;
         correction: {
             of_id: number;
             of_number: string;
@@ -49,6 +52,7 @@ interface Props {
     }[];
     series: { id: number; name: string }[];
     products: { id: number; name: string; unit: string; net_price: string; vat_rate: string }[];
+    currencies: string[];
     vatRates: string[];
     paymentMethods: { value: string; label: string }[];
     templates: { id: number; name: string; is_default: boolean }[];
@@ -81,6 +85,7 @@ export default function InvoiceForm({
     contractors,
     series,
     products,
+    currencies,
     vatRates,
     paymentMethods,
     templates,
@@ -99,11 +104,44 @@ export default function InvoiceForm({
         bank_account: invoice?.bank_account ?? defaults.bank_account,
         notes: invoice?.notes ?? defaults.notes,
         invoice_template_id: invoice?.invoice_template_id ?? '',
+        currency: invoice?.currency ?? 'PLN',
+        exchange_rate: invoice?.exchange_rate ?? '',
+        exchange_rate_date: invoice?.exchange_rate_date ?? '',
         correction_reason: invoice?.correction?.reason ?? '',
         correction_type: invoice?.correction?.type ?? '1',
         lines: invoice?.lines ?? [{ ...blankLine }],
     });
-    const totals = useTotals(form.data.lines, invoice?.correction ? invoice.id : undefined);
+    const totals = useTotals(form.data.lines, {
+        invoiceId: invoice?.correction ? invoice.id : undefined,
+        currency: form.data.currency,
+        rate: form.data.exchange_rate,
+    });
+    const [rateState, setRateState] = useState<{ busy: boolean; message: string | null }>({
+        busy: false,
+        message: null,
+    });
+    /** The NBP rate of the last business day before the sale (or the issue date): what the VAT in zloty is converted with. */
+    const fetchRate = async () => {
+        setRateState({ busy: true, message: null });
+        const day = form.data.sale_date || form.data.issue_date;
+        try {
+            const response = await fetch(`/rates?currency=${form.data.currency}&date=${day}`, {
+                headers: { Accept: 'application/json' },
+            });
+            const body = await response.json();
+            if (!response.ok) {
+                setRateState({
+                    busy: false,
+                    message: body.message ?? t('The National Bank of Poland could not be reached.'),
+                });
+                return;
+            }
+            form.setData({ ...form.data, exchange_rate: body.rate, exchange_rate_date: body.date });
+            setRateState({ busy: false, message: `${t('NBP table')} ${body.table}` });
+        } catch {
+            setRateState({ busy: false, message: t('The National Bank of Poland could not be reached.') });
+        }
+    };
     const correction = invoice?.correction ?? null;
     const errors = form.errors as Record<string, string | undefined>;
     const buyer = contractors.find((c) => c.id === form.data.contractor_id);
@@ -516,6 +554,46 @@ export default function InvoiceForm({
                                     onChange={field('bank_account')}
                                 />
                             </Field>
+                            <div className="grid grid-cols-2 gap-3">
+                                <Field label={t('Currency')} error={errors.currency}>
+                                    <Select
+                                        disabled={correction !== null}
+                                        value={form.data.currency}
+                                        onChange={(e) => form.setData('currency', e.target.value)}
+                                    >
+                                        {currencies.map((c) => (
+                                            <option key={c} value={c}>
+                                                {c}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </Field>
+                                {form.data.currency !== 'PLN' && (
+                                    <Field
+                                        label={t('Exchange rate to PLN')}
+                                        error={errors.exchange_rate}
+                                        hint={
+                                            rateState.message ??
+                                            (form.data.exchange_rate_date
+                                                ? `${t('NBP rate of')} ${form.data.exchange_rate_date}`
+                                                : undefined)
+                                        }
+                                    >
+                                        <div className="flex gap-2">
+                                            <Input
+                                                inputMode="decimal"
+                                                value={form.data.exchange_rate}
+                                                onChange={(e) =>
+                                                    form.setData('exchange_rate', e.target.value.replace(',', '.'))
+                                                }
+                                            />
+                                            <Button variant="secondary" onClick={fetchRate} disabled={rateState.busy}>
+                                                NBP
+                                            </Button>
+                                        </div>
+                                    </Field>
+                                )}
+                            </div>
                             {templates.length > 0 && (
                                 <Field label={t('Printed with the template')} error={errors.invoice_template_id}>
                                     <Select
@@ -578,10 +656,16 @@ export default function InvoiceForm({
                                             </tr>
                                         </tbody>
                                     </table>
+                                    {totals.vat_pln && (
+                                        <div className="mt-3 flex justify-between text-sm text-muted">
+                                            <span>{t('VAT in PLN')}</span>
+                                            <span className="tabular-nums">{money(totals.vat_pln, 'PLN')}</span>
+                                        </div>
+                                    )}
                                     <div className="mt-4 flex items-baseline justify-between rounded-lg bg-primary-soft px-4 py-3">
                                         <span className="font-medium text-primary">{t('Amount due')}</span>
                                         <span className="text-2xl font-semibold tabular-nums text-primary">
-                                            {money(totals.gross, 'PLN')}
+                                            {money(totals.gross, form.data.currency)}
                                         </span>
                                     </div>
                                 </div>

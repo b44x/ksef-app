@@ -24,9 +24,18 @@ function completeLines(lines: InvoiceLineForm[]) {
  * The totals of the lines as the server (the SDK) computes them. Money is never added up in the browser: the form asks
  * after a short pause in typing, and keeps showing the last answer while a line is being edited.
  */
-export function useTotals(lines: InvoiceLineForm[], invoiceId?: number): TotalsPreview | null {
+export function useTotals(
+    lines: InvoiceLineForm[],
+    options: { invoiceId?: number; currency?: string; rate?: string } = {},
+): TotalsPreview | null {
     const [totals, setTotals] = useState<TotalsPreview | null>(null);
-    const body = JSON.stringify({ lines: completeLines(lines), invoice_id: invoiceId });
+    const rate = options.rate?.trim().replace(',', '.');
+    const body = JSON.stringify({
+        lines: completeLines(lines),
+        invoice_id: options.invoiceId,
+        currency: options.currency,
+        exchange_rate: rate && /^\d+(\.\d{1,6})?$/.test(rate) ? rate : undefined,
+    });
     const hasLines = completeLines(lines).length > 0;
 
     useEffect(() => {

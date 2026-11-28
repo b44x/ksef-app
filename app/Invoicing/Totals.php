@@ -14,22 +14,23 @@ final class Totals
 {
     /**
      * @param  list<array{name: string, quantity: string, unit_net_price: string, vat_rate: string}>  $lines
+     * @param  string|null  $rate  the exchange rate to PLN of a foreign-currency invoice, for the VAT in PLN
      * @param  list<array{name: string, quantity: string, unit_net_price: string, vat_rate: string}>  $before  for a correction: the corrected invoice's lines as they stood; the totals are then the difference
-     * @return array{buckets: list<array{rate: string, net: string, vat: string|null, gross: string}>, net: string, vat: string, gross: string, lines: list<string>}
+     * @return array{buckets: list<array{rate: string, net: string, vat: string|null, gross: string}>, net: string, vat: string, gross: string, vat_pln: string|null, lines: list<string>}
      */
-    public static function of(array $lines, string $currency = 'PLN', array $before = []): array
+    public static function of(array $lines, string $currency = 'PLN', array $before = [], ?string $rate = null): array
     {
         $make = static fn (array $l): SdkLine => SdkLine::of($l['name'], SdkInvoiceFactory::trim($l['quantity']), null, SdkInvoiceFactory::trim($l['unit_net_price']), VatRate::from($l['vat_rate']), $currency);
         $sdkLines = array_map($make, $lines);
         $all = [...array_map(static fn (array $l): SdkLine => $make($l)->asBefore(), $before), ...$sdkLines];
 
-        return self::describe(InvoiceTotals::calculate($all, $currency, null), $sdkLines);
+        return self::describe(InvoiceTotals::calculate($all, $currency, $rate === null ? null : Decimal::of($rate)), $sdkLines);
     }
 
     /**
      * The totals of an invoice the SDK has built: for a correction that is the difference to the corrected invoice.
      *
-     * @return array{buckets: list<array{rate: string, net: string, vat: string|null, gross: string}>, net: string, vat: string, gross: string, lines: list<string>}
+     * @return array{buckets: list<array{rate: string, net: string, vat: string|null, gross: string}>, net: string, vat: string, gross: string, vat_pln: string|null, lines: list<string>}
      */
     public static function forInvoice(SdkInvoice $invoice): array
     {
@@ -40,7 +41,7 @@ final class Totals
 
     /**
      * @param  list<SdkLine>  $current
-     * @return array{buckets: list<array{rate: string, net: string, vat: string|null, gross: string}>, net: string, vat: string, gross: string, lines: list<string>}
+     * @return array{buckets: list<array{rate: string, net: string, vat: string|null, gross: string}>, net: string, vat: string, gross: string, vat_pln: string|null, lines: list<string>}
      */
     private static function describe(InvoiceTotals $totals, array $current): array
     {
@@ -54,6 +55,8 @@ final class Totals
             'net' => $totals->net()->toString(2),
             'vat' => $totals->vat()->toString(2),
             'gross' => $totals->gross()->toString(2),
+            // The VAT in zloty of a foreign-currency invoice; null for złoty invoices or while there is no rate.
+            'vat_pln' => array_filter($totals->buckets, static fn ($b): bool => $b->vatPln !== null) === [] ? null : array_reduce($totals->buckets, static fn (Decimal $c, $b): Decimal => $c->add($b->vatPln ?? Decimal::zero()), Decimal::zero())->toString(2),
             // The net value of each line, so the form can show it next to the line.
             'lines' => array_map(static fn (SdkLine $l): string => $l->unitNetPrice->amount->multiply($l->quantity)->roundTo(2)->toString(2), $current),
         ];
