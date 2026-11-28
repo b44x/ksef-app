@@ -37,18 +37,21 @@ class LocaleTest extends TestCase
             ->assertSessionHasErrors(['email' => 'Nieprawidłowy e-mail lub hasło.']);
     }
 
-    public function test_every_language_has_the_same_keys(): void
+    public function test_every_text_the_application_shows_has_a_polish_translation(): void
     {
         $pl = array_keys(json_decode(file_get_contents(lang_path('pl.json')), true));
 
-        foreach (['resources/js'] as $dir) {
+        // The texts of the interface: t('...') in the frontend, __('...') in PHP. Keys are the English wording.
+        $sources = ['resources/js' => "/\\bt\\('((?:[^'\\\\]|\\\\.)*)'/", 'app' => "/__\\('((?:[^'\\\\]|\\\\.)*)'/"];
+
+        foreach ($sources as $dir => $pattern) {
             $used = [];
-            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(base_path($dir))) as $file) {
-                if (preg_match_all("/\\bt\\('((?:[^'\\\\]|\\\\.)*)'/", (string) @file_get_contents((string) $file), $m)) {
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(base_path($dir), \FilesystemIterator::SKIP_DOTS)) as $file) {
+                if (preg_match_all($pattern, (string) file_get_contents((string) $file), $m)) {
                     array_push($used, ...array_map(stripslashes(...), $m[1]));
                 }
             }
-            $this->assertSame([], array_values(array_diff($used, $pl)), 'These texts have no Polish translation.');
+            $this->assertSame([], array_values(array_unique(array_diff($used, $pl))), "These texts in {$dir} have no Polish translation.");
         }
     }
 }

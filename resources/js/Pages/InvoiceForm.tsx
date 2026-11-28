@@ -218,7 +218,7 @@ export default function InvoiceForm({
                             </div>
                             <div className="mt-1 text-2xl font-semibold tracking-tight">{number}</div>
                             <div className="mt-3 max-w-xs">
-                                <Field label={t('Numbering series')} error={errors.numbering_series_id}>
+                                <Field label={t('Series')} error={errors.numbering_series_id}>
                                     <Select
                                         value={form.data.numbering_series_id}
                                         onChange={(e) =>
