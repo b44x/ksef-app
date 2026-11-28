@@ -296,7 +296,7 @@ class InvoiceController extends Controller
         $locale = $request->validate(['lang' => ['nullable', 'in:pl,en']])['lang'] ?? app()->getLocale();
         $name = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $invoice->number).'.pdf';
 
-        return response($pdf->render($view->sales($invoice), $locale), 200, [
+        return response($pdf->render($view->sales($invoice), $locale, $invoice->printSettings()), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$name.'"',
         ]);
@@ -380,6 +380,7 @@ class InvoiceController extends Controller
                 'payment_method' => $invoice->payment_method === null ? '' : (string) $invoice->payment_method,
                 'bank_account' => $invoice->bank_account ?? '',
                 'notes' => $invoice->notes ?? '',
+                'invoice_template_id' => $invoice->invoice_template_id === null ? '' : (string) $invoice->invoice_template_id,
                 'lines' => $invoice->lines->map(fn ($l): array => [
                     'name' => $l->name,
                     'unit' => $l->unit ?? '',
@@ -401,6 +402,7 @@ class InvoiceController extends Controller
                 'modes' => array_map(fn (OfflineMode $m): array => ['value' => $m->value, 'label' => $m->label(), 'hint' => $m->hint(), 'needs_anchor' => $m->needsAnchor(), 'needs_certificate' => $m->usesQr()], OfflineMode::cases()),
                 'suggested' => self::suggestedMode()->value,
             ],
+            'templates' => $company->templates()->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'is_default']),
             'today' => now()->toDateString(),
             'defaultSeriesId' => $company->numberingSeries()->where('is_default', true)->value('id'),
             'contractors' => $company->contractors()->orderBy('name')->get(['id', 'name', 'nip', 'address_line1', 'address_line2', 'country']),

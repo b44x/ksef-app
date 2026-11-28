@@ -37,6 +37,9 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Polish and English interface (more languages: add a JSON file)
 - [x] Import contractors and products from CSV (Polish or English headers, UTF-8 or Windows-1250)
 
+## M5b: Make it a product (autonomous session)
+- [x] Invoice templates: editor with live PDF preview, three layouts, colour, font, logo, visible parts, saved templates, per-invoice choice
+
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)
 - [ ] Manual check that the installers start and work on real Windows and macOS machines

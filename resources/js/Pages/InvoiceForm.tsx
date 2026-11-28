@@ -23,6 +23,7 @@ interface Props {
         payment_method: string;
         bank_account: string;
         notes: string;
+        invoice_template_id: string;
         lines: InvoiceLineForm[];
         problems: string[];
         preview_number: string;
@@ -42,6 +43,7 @@ interface Props {
     products: { id: number; name: string; unit: string; net_price: string; vat_rate: string }[];
     vatRates: string[];
     paymentMethods: { value: string; label: string }[];
+    templates: { id: number; name: string; is_default: boolean }[];
     offline: OfflineOptions;
 }
 
@@ -66,6 +68,7 @@ export default function InvoiceForm({
     products,
     vatRates,
     paymentMethods,
+    templates,
     offline,
 }: Props) {
     const t = useT();
@@ -79,6 +82,7 @@ export default function InvoiceForm({
         payment_method: invoice?.payment_method ?? '6',
         bank_account: invoice?.bank_account ?? '',
         notes: invoice?.notes ?? '',
+        invoice_template_id: invoice?.invoice_template_id ?? '',
         lines: invoice?.lines ?? [{ ...blankLine }],
     });
     const totals = useTotals(form.data.lines);
@@ -455,6 +459,21 @@ export default function InvoiceForm({
                                     onChange={field('bank_account')}
                                 />
                             </Field>
+                            {templates.length > 0 && (
+                                <Field label={t('Printed with the template')} error={errors.invoice_template_id}>
+                                    <Select
+                                        value={form.data.invoice_template_id}
+                                        onChange={(e) => form.setData('invoice_template_id', e.target.value)}
+                                    >
+                                        <option value="">{t('The default one')}</option>
+                                        {templates.map((tpl) => (
+                                            <option key={tpl.id} value={tpl.id}>
+                                                {tpl.name}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </Field>
+                            )}
                             <Field label={t('Printed at the bottom of the invoice')} error={errors.notes}>
                                 <Textarea
                                     rows={3}

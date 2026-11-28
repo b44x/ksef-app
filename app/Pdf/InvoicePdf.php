@@ -15,16 +15,18 @@ final class InvoicePdf
 {
     /**
      * @param  array<string, mixed>  $invoice
+     * @param  array<string, mixed>|null  $settings  how it looks ({@see TemplateSettings}); the built-in look when null
      */
-    public function render(array $invoice, string $locale): string
+    public function render(array $invoice, string $locale, ?array $settings = null): string
     {
+        $settings = TemplateSettings::clean($settings ?? []);
         $dompdf = new Dompdf((new Options)
-            ->set('defaultFont', 'DejaVu Sans')       // has the Polish letters
+            ->set('defaultFont', TemplateSettings::FONTS[$settings['font']])   // all of them have the Polish letters
             ->set('isRemoteEnabled', false)           // nothing is fetched while drawing
             ->set('isPhpEnabled', false)
             ->set('chroot', resource_path('views/pdf')));
         $dompdf->setPaper('A4');
-        $dompdf->loadHtml($this->html($invoice, $locale));
+        $dompdf->loadHtml($this->html($invoice, $locale, $settings));
         $dompdf->render();
 
         return (string) $dompdf->output();
@@ -34,8 +36,9 @@ final class InvoicePdf
      * The page as HTML: what the PDF is drawn from, and what the tests read.
      *
      * @param  array<string, mixed>  $invoice
+     * @param  array<string, mixed>|null  $settings
      */
-    public function html(array $invoice, string $locale): string
+    public function html(array $invoice, string $locale, ?array $settings = null): string
     {
         $previous = App::getLocale();
         App::setLocale($locale);
@@ -43,7 +46,10 @@ final class InvoicePdf
         try {
             return View::make('pdf.invoice', [
                 'i' => $invoice,
+                's' => TemplateSettings::clean($settings ?? []),
                 'words' => $this->words($invoice, $locale),
+                'fonts' => TemplateSettings::FONTS,
+                'sizes' => TemplateSettings::SIZES,
                 'qr' => $this->images($invoice['qr'] ?? null),
             ])->render();
         } finally {

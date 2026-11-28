@@ -68,6 +68,7 @@ final class InvoiceView
             'ksef_number' => $invoice->ksef_number,
             'offline' => $invoice->offline_mode !== null,
             'qr' => $this->qr->codes($invoice),
+            'logo' => $invoice->company->logo,
         ];
     }
 
@@ -123,6 +124,7 @@ final class InvoiceView
             'ksef_number' => $invoice->ksef_number,
             'offline' => false,
             'qr' => $qr,
+            'logo' => null,
         ];
     }
 

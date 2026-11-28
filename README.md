@@ -21,8 +21,8 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 | ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) | ![Availability banner](docs/screenshots/25-availability-banner.png) |
 | **An offline invoice with its two QR codes** | **Choosing why to issue offline** |
 | ![Offline invoice](docs/screenshots/27-invoice-offline.png) | ![Offline dialog](docs/screenshots/28-issue-offline-dialog.png) |
-| **The printed invoice (PDF), in Polish or English** | |
-| ![PDF](docs/screenshots/29-invoice-pdf.png) | |
+| **The printed invoice (PDF), in Polish or English** | **Three layouts, your colour, font and logo** |
+| ![PDF](docs/screenshots/29-invoice-pdf.png) | ![Templates](docs/screenshots/30-invoice-templates.png) |
 
 The totals next to the lines are computed by the SDK as you type, never in the browser.
 
@@ -37,7 +37,8 @@ The totals next to the lines are computed by the SDK as you type, never in the b
 - **Stay safe when KSeF is down**: a banner while KSeF is down (production), offline invoices with their two QR codes,
   the delivery deadline counted in Polish business days, a total-failure mode without QR codes, and a reminder
   (in the app and by a daily e-mail) until they are delivered.
-- **Print** any issued or received invoice as a PDF, in Polish or English, with the KSeF QR codes.
+- **Print** any issued or received invoice as a PDF, in Polish or English, with the KSeF QR codes; design your own
+  templates (layout, colour, font, logo, what is shown) in an editor with a live preview.
 - **Import** contractors and products from a CSV file (the format Excel saves).
 - **Run anywhere**: in a browser (Docker, a server, a NAS) first; as a desktop app for Windows and macOS from the same code.
 

@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $company_id
  * @property int $contractor_id
  * @property int $numbering_series_id
+ * @property int|null $invoice_template_id
  * @property InvoiceStatus $status
  * @property string|null $number
  * @property Carbon $issue_date
@@ -45,7 +46,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property Carbon|null $accepted_at
  */
-#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes'])]
+#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id'])]
 class Invoice extends Model
 {
     /**
@@ -98,6 +99,24 @@ class Invoice extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(InvoiceLine::class)->orderBy('position');
+    }
+
+    /**
+     * @return BelongsTo<InvoiceTemplate, $this>
+     */
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(InvoiceTemplate::class, 'invoice_template_id');
+    }
+
+    /**
+     * The settings this invoice is printed with: its template if it has one (and the template still exists), else the default.
+     *
+     * @return array<string, mixed>
+     */
+    public function printSettings(): array
+    {
+        return $this->template?->resolved() ?? $this->company->defaultTemplateSettings();
     }
 
     /** The references of the submission, once KSeF accepted the document for processing. */

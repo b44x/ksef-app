@@ -142,7 +142,7 @@ class PurchaseController extends Controller
         $name = preg_replace('/[^A-Za-z0-9._-]+/', '-', $invoice->ksef_number).'.pdf';
 
         try {
-            $content = $pdf->render($view->purchase($invoice), $locale);
+            $content = $pdf->render($view->purchase($invoice), $locale, $invoice->company->defaultTemplateSettings());
         } catch (KsefException) {
             abort(422, __('This invoice cannot be shown by this version.'));
         }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AuthMethod;
 use App\Enums\KsefEnvironment;
+use App\Pdf\TemplateSettings;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $purchases_synced_at
  * @property string|null $purchases_sync_error
  * @property string|null $notify_email
+ * @property string|null $logo
  * @property bool $notify_offline
  * @property bool $notify_purchases
  * @property bool $notify_rejected
@@ -94,6 +96,26 @@ class Company extends Model
     public function numberingSeries(): HasMany
     {
         return $this->hasMany(NumberingSeries::class);
+    }
+
+    /**
+     * @return HasMany<InvoiceTemplate, $this>
+     */
+    public function templates(): HasMany
+    {
+        return $this->hasMany(InvoiceTemplate::class);
+    }
+
+    /**
+     * The settings of the template that prints invoices unless one is chosen: the default one, or the built-in look.
+     *
+     * @return array<string, mixed>
+     */
+    public function defaultTemplateSettings(): array
+    {
+        $default = $this->templates()->where('is_default', true)->first();
+
+        return $default?->resolved() ?? TemplateSettings::defaults();
     }
 
     /**

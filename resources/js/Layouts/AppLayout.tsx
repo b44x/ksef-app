@@ -10,6 +10,7 @@ import {
     LogOut,
     Menu,
     Package,
+    Palette,
     Users,
     X,
 } from 'lucide-react';
@@ -28,6 +29,7 @@ const nav = [
     { href: '/contractors', label: 'Contractors', icon: Users },
     { href: '/products', label: 'Products', icon: Package },
     { href: '/series', label: 'Numbering', icon: Hash },
+    { href: '/templates', label: 'Templates', icon: Palette },
     { href: '/company', label: 'Company', icon: Building2 },
 ];
 
