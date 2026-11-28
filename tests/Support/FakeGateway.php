@@ -2,6 +2,8 @@
 
 namespace Tests\Support;
 
+use App\Ksef\Availability;
+use App\Ksef\AvailabilityState;
 use App\Ksef\CheckOutcome;
 use App\Ksef\ConnectionCheck;
 use App\Ksef\ConnectionReport;
@@ -54,9 +56,18 @@ final class FakeGateway implements KsefGateway
     /** When set, every call that needs a login fails with it (a company that signs in by hand, with no valid login). */
     public ?SigningRequired $needsSigning = null;
 
+    public Availability $availability;
+
+    public ?\Throwable $availabilityFails = null;
+
+    public int $availabilityAsked = 0;
+
     private int $asked = 0;
 
-    public function __construct(private readonly bool $healthy = true) {}
+    public function __construct(private readonly bool $healthy = true)
+    {
+        $this->availability = new Availability(AvailabilityState::Available);
+    }
 
     public function check(Company $company): ConnectionReport
     {
@@ -125,5 +136,15 @@ final class FakeGateway implements KsefGateway
             throw $this->refuseSigning;
         }
         $this->signed[] = $signedXml;
+    }
+
+    public function availability(Company $company): Availability
+    {
+        $this->availabilityAsked++;
+        if ($this->availabilityFails !== null) {
+            throw $this->availabilityFails;
+        }
+
+        return $this->availability;
     }
 }

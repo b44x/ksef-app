@@ -24,7 +24,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] List with search and filters, "new" markers; invoice page built on the SDK reader; download XML
 
 ## M4: Stay safe
-- [ ] Availability banner; offline invoices with the delivery deadline and a reminder
+- [x] Availability banner (production only: the TEST availability service shows made-up failures)
+- [ ] Offline invoices with the delivery deadline and a reminder
 - [ ] Error handling in the UI: rejected invoices explained, retries without duplicates
 - [ ] Audit log; backup and restore
 

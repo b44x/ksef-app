@@ -41,6 +41,13 @@ interface KsefGateway
     public function upo(Company $company, Submission $submission): ?string;
 
     /**
+     * Whether KSeF is up, from the Ministry's public availability service. Needs no login.
+     *
+     * @throws \Throwable when the availability service itself cannot be reached
+     */
+    public function availability(Company $company): Availability;
+
+    /**
      * Step one of signing in by hand: the login document for the person to sign outside the application.
      *
      * @throws SigningRefused when the company does not sign in by hand, or KSeF could not be reached

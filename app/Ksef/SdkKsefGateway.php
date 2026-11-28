@@ -10,6 +10,8 @@ use B4x\Ksef\Doctor\Doctor;
 use B4x\Ksef\Exception\KsefException;
 use B4x\Ksef\Exception\ManualSignatureRequiredException;
 use B4x\Ksef\Exception\SubmissionOutcomeUnknownException;
+use B4x\Ksef\Latarnia\AvailabilityMessage;
+use B4x\Ksef\Latarnia\AvailabilityStatus;
 use B4x\Ksef\Status\InvoiceSubmission;
 use B4x\Ksef\Support\SystemClock;
 use DateTimeImmutable;
@@ -197,5 +199,27 @@ class SdkKsefGateway implements KsefGateway
             // both explain themselves.
             throw new SigningRefused($e->getMessage(), 0, $e);
         }
+    }
+
+    public function availability(Company $company): Availability
+    {
+        $client = $this->clients->make($company);
+        $report = $client->availability();
+
+        return new Availability(
+            match ($report->status) {
+                AvailabilityStatus::Available => AvailabilityState::Available,
+                AvailabilityStatus::Maintenance => AvailabilityState::Maintenance,
+                AvailabilityStatus::Failure => AvailabilityState::Failure,
+                AvailabilityStatus::TotalFailure => AvailabilityState::TotalFailure,
+            },
+            array_map(static fn (AvailabilityMessage $m): array => [
+                'title' => $m->title,
+                'text' => $m->text,
+                'start' => $m->start->format(DATE_ATOM),
+                'end' => $m->end?->format(DATE_ATOM),
+            ], $report->messages),
+            new DateTimeImmutable,
+        );
     }
 }

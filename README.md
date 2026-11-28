@@ -17,8 +17,8 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 | ![Szkic faktury](docs/screenshots/09-invoice-draft-pl.png) | ![Dark theme](docs/screenshots/13-invoice-draft-dark.png) |
 | **Accepted by KSeF, with its number and UPO** | **Purchase invoices from KSeF** |
 | ![Accepted by KSeF](docs/screenshots/18-invoice-accepted.png) | ![Purchases](docs/screenshots/21-purchases.png) |
-| **On a phone** | |
-| ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) | |
+| **On a phone** | **When KSeF is down** |
+| ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) | ![Availability banner](docs/screenshots/25-availability-banner.png) |
 
 The totals next to the lines are computed by the SDK as you type, never in the browser.
 
@@ -49,7 +49,7 @@ php artisan migrate
 npm run build
 php artisan serve        # http://localhost:8000
 php artisan queue:work   # sends and receives invoices in the background (`composer run dev` starts it for you)
-php artisan schedule:work   # fetches new purchase invoices every 15 minutes (or run `schedule:run` from cron)
+php artisan schedule:work   # fetches new purchase invoices and checks KSeF's availability (or run `schedule:run` from cron)
 ```
 
 To look around with example data (local use only; the login is `demo@example.test` / `demo-password-123`):

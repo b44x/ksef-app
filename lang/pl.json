@@ -286,5 +286,14 @@
     "API": "API",
     "PHP": "PHP",
     "Certificate": "Certyfikat",
-    "Series": "Seria numeracji"
+    "Series": "Seria numeracji",
+    "KSeF is available": "KSeF działa",
+    "KSeF: planned maintenance": "KSeF: przerwa techniczna",
+    "KSeF has a failure": "KSeF ma awarię",
+    "KSeF: total failure": "KSeF: awaria całkowita",
+    "KSeF status unknown": "Stan KSeF nieznany",
+    "Delivery to KSeF and the QR codes are suspended. Follow the Ministry of Finance announcement.": "Dostarczanie do KSeF i kody QR są zawieszone. Śledź komunikat Ministerstwa Finansów.",
+    "Invoices cannot be delivered to KSeF now. Sending is paused; invoices issued meanwhile can be delivered later.": "Faktur nie można teraz dostarczać do KSeF. Wysyłka jest wstrzymana, a faktury wystawione w tym czasie można dostarczyć później.",
+    "KSeF is down for planned maintenance. Sending is paused until it ends.": "KSeF jest wyłączony z powodu planowanej przerwy technicznej. Wysyłka jest wstrzymana do jej końca.",
+    "end not known yet": "koniec nieznany"
 }
