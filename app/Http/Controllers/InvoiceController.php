@@ -12,6 +12,7 @@ use App\Invoicing\InvoiceQr;
 use App\Invoicing\InvoiceRow;
 use App\Invoicing\IssueInvoice;
 use App\Invoicing\OfflineDeadlines;
+use App\Invoicing\PaymentLabel;
 use App\Invoicing\SdkInvoiceFactory;
 use App\Invoicing\Totals;
 use App\Jobs\PollInvoiceStatusJob;
@@ -21,11 +22,14 @@ use App\Ksef\AvailabilityState;
 use App\Ksef\KsefGateway;
 use App\Models\Company;
 use App\Models\Invoice;
+use App\Pdf\InvoicePdf;
+use App\Pdf\InvoiceView;
 use B4x\Ksef\Invoice\PaymentMethod;
 use B4x\Ksef\Invoice\VatRate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -96,7 +100,7 @@ class InvoiceController extends Controller
                 'issue_date' => $invoice->issue_date->toDateString(),
                 'sale_date' => $invoice->sale_date?->toDateString(),
                 'due_date' => $invoice->due_date?->toDateString(),
-                'payment_method' => $invoice->payment_method === null ? null : self::methodLabel(PaymentMethod::from($invoice->payment_method)),
+                'payment_method' => $invoice->payment_method === null ? null : __(PaymentLabel::of(PaymentMethod::from($invoice->payment_method))),
                 'bank_account' => $invoice->bank_account,
                 'notes' => $invoice->notes,
                 'currency' => $invoice->currency,
@@ -283,6 +287,20 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.edit', $copy)->with('status', __('A new draft was made from :number.', ['number' => (string) $invoice->number]));
     }
 
+    public function pdf(Request $request, Invoice $invoice, InvoiceView $view, InvoicePdf $pdf): HttpResponse
+    {
+        $this->authorizeOwnership($invoice);
+        abort_if($invoice->isDraft(), 404);
+
+        $locale = $request->validate(['lang' => ['nullable', 'in:pl,en']])['lang'] ?? app()->getLocale();
+        $name = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) $invoice->number).'.pdf';
+
+        return response($pdf->render($view->sales($invoice), $locale), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$name.'"',
+        ]);
+    }
+
     public function xml(Invoice $invoice): StreamedResponse
     {
         $this->authorizeOwnership($invoice);
@@ -388,7 +406,7 @@ class InvoiceController extends Controller
             'series' => $company->numberingSeries()->orderBy('name')->get(['id', 'name']),
             'products' => $company->products()->orderBy('name')->get(['id', 'name', 'unit', 'net_price', 'vat_rate']),
             'vatRates' => array_map(static fn (VatRate $r): string => $r->value, VatRate::cases()),
-            'paymentMethods' => array_map(static fn (PaymentMethod $m): array => ['value' => (string) $m->value, 'label' => self::methodLabel($m)], PaymentMethod::cases()),
+            'paymentMethods' => array_map(static fn (PaymentMethod $m): array => ['value' => (string) $m->value, 'label' => __(PaymentLabel::of($m))], PaymentMethod::cases()),
         ]);
     }
 
@@ -410,18 +428,5 @@ class InvoiceController extends Controller
         $dom->formatOutput = true;
 
         return $dom->loadXML($xml) ? (string) $dom->saveXML() : $xml;
-    }
-
-    private static function methodLabel(PaymentMethod $method): string
-    {
-        return match ($method) {
-            PaymentMethod::Cash => __('Cash'),
-            PaymentMethod::Card => __('Card'),
-            PaymentMethod::Voucher => __('Voucher'),
-            PaymentMethod::Cheque => __('Cheque'),
-            PaymentMethod::Credit => __('Credit'),
-            PaymentMethod::BankTransfer => __('Bank transfer'),
-            PaymentMethod::Mobile => __('Mobile payment'),
-        };
     }
 }

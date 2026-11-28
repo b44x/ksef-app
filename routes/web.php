@@ -48,11 +48,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/check', [InvoiceController::class, 'check'])->name('invoices.check');
     Route::post('/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
     Route::get('/invoices/{invoice}/upo', [InvoiceController::class, 'upo'])->name('invoices.upo');
+    Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::get('/invoices/{invoice}/xml', [InvoiceController::class, 'xml'])->name('invoices.xml');
     Route::resource('invoices', InvoiceController::class);
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::post('/purchases/sync', [PurchaseController::class, 'sync'])->name('purchases.sync');
     Route::get('/purchases/{invoice}', [PurchaseController::class, 'show'])->name('purchases.show');
+    Route::get('/purchases/{invoice}/pdf', [PurchaseController::class, 'pdf'])->name('purchases.pdf');
     Route::get('/purchases/{invoice}/xml', [PurchaseController::class, 'xml'])->name('purchases.xml');
     Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('series', NumberingSeriesController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['series' => 'series']);

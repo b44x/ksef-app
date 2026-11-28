@@ -1,6 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
 import { CheckCircle2, CircleDashed, Copy, CopyPlus, Download, Loader2, RefreshCw, Send, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { PdfLinks } from '../Components/PdfLinks';
 import { Button, ButtonLink } from '../Components/Button';
 import { type Party, PartyBlock } from '../Components/PartyBlock';
 import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
@@ -132,6 +133,7 @@ export default function InvoiceShow({ invoice, totals, canSend, needsSigning, of
                         <ButtonLink href="/invoices" variant="secondary">
                             {t('Back to the list')}
                         </ButtonLink>
+                        <PdfLinks href={`/invoices/${invoice.id}/pdf`} />
                         <a href={`/invoices/${invoice.id}/xml`} download>
                             <Button variant="secondary">
                                 <Download className="size-4" />

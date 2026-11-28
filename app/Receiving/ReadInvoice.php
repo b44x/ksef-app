@@ -62,6 +62,7 @@ final class ReadInvoice
             ], array_values(array_filter($invoice->lines, static fn (ReceivedLine $l): bool => ! $l->before))),
             'tax_summary' => array_map(static fn ($row): array => [
                 'group' => $row->group,
+                'label' => self::groupLabel($row->group),
                 'net' => $row->net->toString(2),
                 'tax' => $row->tax?->toString(2),
             ], $invoice->taxSummary),
@@ -102,5 +103,26 @@ final class ReadInvoice
             'bank_accounts' => $payment->bankAccounts,
             'is_paid' => $payment->isPaid(),
         ];
+    }
+
+    /** The tax groups of FA(3) the summary is split into, as people know them. */
+    public static function groupLabel(string $group): string
+    {
+        return match ($group) {
+            '1' => '23% / 22%',
+            '2' => '8% / 7%',
+            '3' => '5%',
+            '4' => __('Taxi flat rate'),
+            '5' => 'OSS',
+            '6_1' => __('0% domestic'),
+            '6_2' => __('0% intra-Community'),
+            '6_3' => __('0% export'),
+            '7' => __('Exempt'),
+            '8' => __('Not subject (outside Poland)'),
+            '9' => __('Not subject (art. 100)'),
+            '10' => __('Reverse charge'),
+            '11' => __('Margin scheme'),
+            default => $group,
+        };
     }
 }

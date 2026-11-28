@@ -21,6 +21,8 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 | ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) | ![Availability banner](docs/screenshots/25-availability-banner.png) |
 | **An offline invoice with its two QR codes** | **Choosing why to issue offline** |
 | ![Offline invoice](docs/screenshots/27-invoice-offline.png) | ![Offline dialog](docs/screenshots/28-issue-offline-dialog.png) |
+| **The printed invoice (PDF), in Polish or English** | |
+| ![PDF](docs/screenshots/29-invoice-pdf.png) | |
 
 The totals next to the lines are computed by the SDK as you type, never in the browser.
 

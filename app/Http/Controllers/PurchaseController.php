@@ -6,11 +6,14 @@ use App\Http\Controllers\Concerns\ScopedToCompany;
 use App\Jobs\SyncPurchasesJob;
 use App\Models\Company;
 use App\Models\ReceivedInvoice;
+use App\Pdf\InvoicePdf;
+use App\Pdf\InvoiceView;
 use App\Receiving\ReadInvoice;
 use App\Receiving\SyncPurchases;
 use B4x\Ksef\Exception\KsefException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -129,6 +132,22 @@ class PurchaseController extends Controller
         SyncPurchasesJob::dispatch($company->id, $company->purchases_synced_until === null ? ($data['since'] ?? null) : null);
 
         return back()->with('status', __('Fetching purchase invoices from KSeF…'));
+    }
+
+    public function pdf(Request $request, ReceivedInvoice $invoice, InvoiceView $view, InvoicePdf $pdf): HttpResponse
+    {
+        $this->authorizeOwnership($invoice);
+
+        $locale = $request->validate(['lang' => ['nullable', 'in:pl,en']])['lang'] ?? app()->getLocale();
+        $name = preg_replace('/[^A-Za-z0-9._-]+/', '-', $invoice->ksef_number).'.pdf';
+
+        try {
+            $content = $pdf->render($view->purchase($invoice), $locale);
+        } catch (KsefException) {
+            abort(422, __('This invoice cannot be shown by this version.'));
+        }
+
+        return response($content, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="'.$name.'"']);
     }
 
     public function xml(ReceivedInvoice $invoice): StreamedResponse

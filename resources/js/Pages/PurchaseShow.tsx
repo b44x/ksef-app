@@ -1,4 +1,5 @@
 import { Download } from 'lucide-react';
+import { PdfLinks } from '../Components/PdfLinks';
 import { Button, ButtonLink } from '../Components/Button';
 import { type Party, PartyBlock } from '../Components/PartyBlock';
 import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
@@ -28,7 +29,7 @@ interface Props {
             gross: string | null;
             vat_rate: string;
         }[];
-        tax_summary: { group: string; net: string; tax: string | null }[];
+        tax_summary: { group: string; label: string; net: string; tax: string | null }[];
         payment: { paid_on: string | null; due_dates: string[]; bank_accounts: string[]; is_paid: boolean } | null;
         notes: string | null;
         is_correction: boolean;
@@ -44,23 +45,6 @@ const labels: Record<string, string> = {
     UPR: 'Simplified invoice',
     KOR_ZAL: 'Correction',
     KOR_ROZ: 'Correction',
-};
-
-/** The tax groups of FA(3) the summary is split into, as people know them. */
-const groups: Record<string, string> = {
-    '1': '23% / 22%',
-    '2': '8% / 7%',
-    '3': '5%',
-    '4': 'Taxi flat rate',
-    '5': 'OSS',
-    '6_1': '0% domestic',
-    '6_2': '0% intra-Community',
-    '6_3': '0% export',
-    '7': 'Exempt',
-    '8': 'Not subject (outside Poland)',
-    '9': 'Not subject (art. 100)',
-    '10': 'Reverse charge',
-    '11': 'Margin scheme',
 };
 
 export default function PurchaseShow({ invoice, details, problem }: Props) {
@@ -84,8 +68,9 @@ export default function PurchaseShow({ invoice, details, problem }: Props) {
                         <ButtonLink href="/purchases" variant="secondary">
                             {t('Back to the list')}
                         </ButtonLink>
+                        <PdfLinks href={`/purchases/${invoice.id}/pdf`} />
                         <a href={`/purchases/${invoice.id}/xml`} download>
-                            <Button>
+                            <Button variant="secondary">
                                 <Download className="size-4" />
                                 {t('Download XML')}
                             </Button>
@@ -211,9 +196,7 @@ export default function PurchaseShow({ invoice, details, problem }: Props) {
                                 <tbody className="tabular-nums">
                                     {details.tax_summary.map((row) => (
                                         <tr key={row.group}>
-                                            <td className="text-muted">
-                                                {groups[row.group] ? t(groups[row.group]) : row.group}
-                                            </td>
+                                            <td className="text-muted">{row.label}</td>
                                             <td className="text-right">{money(row.net)}</td>
                                             <td className="text-right">{row.tax !== null ? money(row.tax) : '—'}</td>
                                         </tr>

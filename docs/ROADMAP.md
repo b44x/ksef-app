@@ -30,7 +30,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [ ] Audit log; backup and restore
 
 ## M5: PDF and polish
-- [ ] PDF of the invoice (a separate library), UPO as PDF
+- [x] PDF of issued and received invoices (Polish or English, with the KSeF QR codes)
+- [ ] UPO as PDF
 - [x] Polish and English interface (more languages: add a JSON file)
 - [ ] Import contractors and products from CSV
 

@@ -338,5 +338,16 @@
     "Valid until :date.": "Ważny do :date.",
     "The Offline certificate has expired. Request a new one while KSeF is up.": "Certyfikat Offline wygasł. Poproś o nowy, gdy KSeF działa.",
     "Request the Offline certificate while KSeF is up. It confirms you as the issuer in QR code II and cannot log in. It needs a login made with a signature (a certificate or a trusted profile), not a token.": "Poproś o certyfikat Offline, gdy KSeF działa. Potwierdza Cię jako wystawcę w kodzie QR II i nie służy do logowania. Wymaga logowania podpisem (certyfikat lub profil zaufany), nie tokenem.",
-    "Request the Offline certificate": "Poproś o certyfikat Offline"
+    "Request the Offline certificate": "Poproś o certyfikat Offline",
+    "Correction invoice": "Faktura korygująca",
+    "Gross price": "Cena brutto",
+    "In words": "Słownie",
+    "To pay": "Do zapłaty",
+    "Payment": "Płatność",
+    "Notes": "Uwagi",
+    "Invoice from the National e-Invoice System (KSeF)": "Faktura z Krajowego Systemu e-Faktur (KSeF)",
+    "Download PDF": "Pobierz PDF",
+    "Download PDF in English": "Pobierz PDF po angielsku",
+    "Download PDF in Polish": "Pobierz PDF po polsku",
+    "This invoice cannot be shown by this version.": "Ta wersja nie potrafi pokazać tej faktury."
 }

@@ -42,7 +42,7 @@ class LocaleTest extends TestCase
         $pl = array_keys(json_decode(file_get_contents(lang_path('pl.json')), true));
 
         // The texts of the interface: t('...') in the frontend, __('...') in PHP. Keys are the English wording.
-        $sources = ['resources/js' => "/\\bt\\('((?:[^'\\\\]|\\\\.)*)'/", 'app' => "/__\\('((?:[^'\\\\]|\\\\.)*)'/"];
+        $sources = ['resources/js' => "/\\bt\\('((?:[^'\\\\]|\\\\.)*)'/", 'app' => "/__\\('((?:[^'\\\\]|\\\\.)*)'/", 'resources/views' => "/__\\('((?:[^'\\\\]|\\\\.)*)'/"];
 
         foreach ($sources as $dir => $pattern) {
             $used = [];
