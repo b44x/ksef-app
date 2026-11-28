@@ -174,6 +174,7 @@ export default function InvoiceShow({
     const send = () => router.post(`/invoices/${invoice.id}/send`);
     const [anchor, setAnchor] = useState('');
     const proforma = invoice.kind === 'proforma';
+    const isSale = !proforma && invoice.status !== 'rejected'; // owed money, repeatable
     const [repeating, setRepeating] = useState(false);
     const [emailing, setEmailing] = useState(false);
     const when = (iso: string) =>
@@ -215,7 +216,7 @@ export default function InvoiceShow({
                                 {invoice.converted_to.length > 0 ? t('Open the VAT invoice') : t('Make a VAT invoice')}
                             </Button>
                         )}
-                        {!correction.of && !proforma && (
+                        {!correction.of && isSale && (
                             <Button variant="secondary" onClick={() => setRepeating(true)}>
                                 <Repeat className="size-4" />
                                 {t('Repeat')}
@@ -562,7 +563,7 @@ export default function InvoiceShow({
                 </Card>
             )}
 
-            {!proforma && (
+            {isSale && (
                 <PaymentsCard invoiceId={invoice.id} currency={invoice.currency} payment={payment} today={today} />
             )}
 
