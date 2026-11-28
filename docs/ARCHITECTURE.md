@@ -34,6 +34,20 @@ Domain / persistence              app/Models        Company, Invoice, Contractor
 Queue and scheduler               app/Jobs          send, poll status, synchronise
 ```
 
+## Where things live
+
+| Concern | Code | Notes |
+| --- | --- | --- |
+| Issuing | `app/Invoicing` (`IssueInvoice`, `SdkInvoiceFactory`, `Totals`) | The only place that knows both the app's invoice and the SDK's. Money is never computed in PHP or JS: the SDK does it (`Totals`), and the sums are frozen on the invoice at issue (`net_total`, `vat_total`, `gross_total`, `vat_summary`). |
+| Kinds of document | `Invoice::$kind`, `corrects_invoice_id`, `converted_from_id` | VAT invoice, proforma (never built as FA(3)), correction (KOR: "before" lines from `stateBefore()`, totals are the difference). |
+| Printing | `app/Pdf` (`InvoiceView`, `InvoicePdf`, `TemplateSettings`), `resources/views/pdf` | One Blade view, three layouts, settings cleaned by `TemplateSettings::clean()`. The editor's live preview is the same PDF code. |
+| Money owed | `Payment`, `Invoice::outstanding()`, `app/Reports/SalesReport` | Rejected invoices and proformas are not sales. |
+| Repeating | `RecurringInvoice`, `GenerateRecurring`, `invoices:generate-recurring` | Daily at 05:00; missed runs are not made up. |
+| Outside data | `app/Lookup` (`WhiteList`, `NbpRates`) | Public APIs, cached, failures are not cached. |
+| Mail | `app/Mail`, `app/Notifications/BuildDigest` | `MAIL_*` in the environment. |
+
+Foreign-currency invoices carry `exchange_rate` (NBP, last business day before the sale); the SDK converts the VAT.
+
 ## Languages
 
 The interface is multilingual (English and Polish now). Texts are keyed by their English wording: PHP uses `__('...')`,
