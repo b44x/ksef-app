@@ -72,7 +72,7 @@ final class TemplateSettings
     /** A colour for text on the accent: white on dark colours, black on light ones. */
     public static function contrast(string $hex): string
     {
-        [$r, $g, $b] = sscanf($hex, '#%02x%02x%02x');
+        [$r, $g, $b] = self::rgb($hex);
 
         return (0.299 * $r + 0.587 * $g + 0.114 * $b) > 160 ? '#111827' : '#ffffff';
     }
@@ -80,9 +80,17 @@ final class TemplateSettings
     /** The accent mixed with white, for light backgrounds ($amount of white, 0..1). */
     public static function tint(string $hex, float $amount): string
     {
-        [$r, $g, $b] = sscanf($hex, '#%02x%02x%02x');
+        [$r, $g, $b] = self::rgb($hex);
         $mix = static fn (int $c): int => (int) round($c + (255 - $c) * $amount);
 
         return sprintf('#%02x%02x%02x', $mix($r), $mix($g), $mix($b));
+    }
+
+    /**
+     * @return array{int, int, int}
+     */
+    private static function rgb(string $hex): array
+    {
+        return [(int) hexdec(substr($hex, 1, 2)), (int) hexdec(substr($hex, 3, 2)), (int) hexdec(substr($hex, 5, 2))];
     }
 }
