@@ -567,5 +567,12 @@
     "Backup": "Kopia zapasowa",
     "Everything the application holds, in one file: invoices, contractors, settings.": "Wszystko, co przechowuje aplikacja, w jednym pliku: faktury, kontrahenci, ustawienia.",
     "Download a backup": "Pobierz kopię zapasową",
-    "The saved KSeF logins in it are encrypted with the application key (APP_KEY). Keep that key safe as well: without it the logins in a backup cannot be read.": "Zapisane logowania do KSeF są w niej zaszyfrowane kluczem aplikacji (APP_KEY). Zachowaj ten klucz w bezpiecznym miejscu: bez niego logowań z kopii nie da się odczytać."
+    "The saved KSeF logins in it are encrypted with the application key (APP_KEY). Keep that key safe as well: without it the logins in a backup cannot be read.": "Zapisane logowania do KSeF są w niej zaszyfrowane kluczem aplikacji (APP_KEY). Zachowaj ten klucz w bezpiecznym miejscu: bez niego logowań z kopii nie da się odczytać.",
+    "Get started": "Zacznij tutaj",
+    ":done of :total steps done": "Zrobione: :done z :total",
+    "Fill in your company address": "Uzupełnij adres firmy",
+    "Connect to KSeF": "Połącz się z KSeF",
+    "Add your first contractor": "Dodaj pierwszego kontrahenta",
+    "Set up a numbering series": "Ustaw serię numeracji",
+    "Issue your first invoice": "Wystaw pierwszą fakturę"
 }

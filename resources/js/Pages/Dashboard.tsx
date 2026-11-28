@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { AlertTriangle, FilePlus2, FileText, PlugZap, Send, TrendingUp, Wallet } from 'lucide-react';
+import { AlertTriangle, Check, FilePlus2, FileText, PlugZap, Send, TrendingUp, Wallet } from 'lucide-react';
 import { BarChart, type MonthPoint } from '../Components/BarChart';
 import { Alert, Badge, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
 import { Button, ButtonLink } from '../Components/Button';
@@ -10,6 +10,7 @@ import { useMoney } from '../lib/format';
 import type { SharedProps } from '../types';
 
 interface Props {
+    setup: { key: string; label: string; href: string; done: boolean }[];
     kpi: {
         sales: { currency: string; count: number; net: string; vat: string; gross: string }[];
         receivables: { currency: string; count: number; outstanding: string; overdue: string; overdue_count: number }[];
@@ -60,7 +61,7 @@ function Stat({
     );
 }
 
-export default function Dashboard({ kpi, stats, offline, recent, details }: Props) {
+export default function Dashboard({ setup, kpi, stats, offline, recent, details }: Props) {
     const t = useT();
     const money = useMoney();
     const { report, locale } = usePage<SharedProps>().props;
@@ -79,6 +80,35 @@ export default function Dashboard({ kpi, stats, offline, recent, details }: Prop
                     </ButtonLink>
                 }
             />
+
+            {setup.length > 0 && (
+                <Card
+                    title={t('Get started')}
+                    description={t(':done of :total steps done', {
+                        done: setup.filter((s) => s.done).length,
+                        total: setup.length,
+                    })}
+                    className="mb-6"
+                >
+                    <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                        {setup.map((s, i) => (
+                            <li key={s.key}>
+                                <a
+                                    href={s.href}
+                                    className={`flex h-full items-start gap-3 rounded-lg border p-3 text-sm transition-colors hover:bg-surface-muted ${s.done ? 'border-border text-muted' : 'border-primary/40 bg-primary-soft text-text'}`}
+                                >
+                                    <span
+                                        className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${s.done ? 'bg-success text-white' : 'bg-primary text-primary-text'}`}
+                                    >
+                                        {s.done ? <Check className="size-3" /> : i + 1}
+                                    </span>
+                                    <span className={s.done ? 'line-through' : 'font-medium'}>{s.label}</span>
+                                </a>
+                            </li>
+                        ))}
+                    </ol>
+                </Card>
+            )}
 
             {offline && (
                 <div className="mb-6">

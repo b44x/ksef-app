@@ -26,6 +26,7 @@ class DashboardController extends Controller
         $month = CarbonImmutable::today();
 
         return Inertia::render('Dashboard', [
+            'setup' => $this->setup($company),
             'kpi' => [
                 'sales' => $report->totals($month->startOfMonth(), $month->endOfMonth()),
                 'receivables' => $report->receivables(),
@@ -68,5 +69,23 @@ class DashboardController extends Controller
             'next_deadline' => $dated->min('offline_deadline')?->toIso8601String(),
             'undated' => $waiting->count() - $dated->count(),
         ];
+    }
+
+    /**
+     * What is left to do before the first invoice goes out, in the order it makes sense. Empty once everything is done.
+     *
+     * @return list<array{key: string, label: string, href: string, done: bool}>
+     */
+    private function setup(Company $company): array
+    {
+        $steps = [
+            ['key' => 'company', 'label' => __('Fill in your company address'), 'href' => '/company', 'done' => $company->address_line1 !== null && $company->address_line1 !== ''],
+            ['key' => 'ksef', 'label' => __('Connect to KSeF'), 'href' => '/company', 'done' => $company->credentials !== null || $company->tokens()->exists()],
+            ['key' => 'contractor', 'label' => __('Add your first contractor'), 'href' => '/contractors', 'done' => $company->contractors()->exists()],
+            ['key' => 'series', 'label' => __('Set up a numbering series'), 'href' => '/series', 'done' => $company->numberingSeries()->exists()],
+            ['key' => 'invoice', 'label' => __('Issue your first invoice'), 'href' => '/invoices/create', 'done' => $company->invoices()->where('status', '!=', InvoiceStatus::Draft)->exists()],
+        ];
+
+        return array_filter($steps, fn (array $s): bool => ! $s['done']) === [] ? [] : $steps;
     }
 }
