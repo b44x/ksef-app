@@ -5,6 +5,7 @@ namespace App\Ksef;
 use App\Models\Company;
 use B4x\Ksef\Api\InvoiceDateType;
 use B4x\Ksef\Api\InvoiceSubjectType;
+use B4x\Ksef\Certificates\CertificateType;
 use B4x\Ksef\Doctor\CheckStatus;
 use B4x\Ksef\Doctor\Doctor;
 use B4x\Ksef\Exception\KsefException;
@@ -12,6 +13,7 @@ use B4x\Ksef\Exception\ManualSignatureRequiredException;
 use B4x\Ksef\Exception\SubmissionOutcomeUnknownException;
 use B4x\Ksef\Latarnia\AvailabilityMessage;
 use B4x\Ksef\Latarnia\AvailabilityStatus;
+use B4x\Ksef\Session\SendOptions;
 use B4x\Ksef\Status\InvoiceSubmission;
 use B4x\Ksef\Support\SystemClock;
 use DateTimeImmutable;
@@ -66,10 +68,10 @@ class SdkKsefGateway implements KsefGateway
         ));
     }
 
-    public function submit(Company $company, string $xml): Submission
+    public function submit(Company $company, string $xml, bool $offline = false): Submission
     {
         try {
-            $sent = $this->clients->make($company)->sendInvoice($xml);
+            $sent = $this->clients->make($company)->sendInvoice($xml, $offline ? SendOptions::offline() : null);
         } catch (ManualSignatureRequiredException) {
             throw new SigningRequired;
         } catch (SubmissionOutcomeUnknownException $e) {
@@ -221,5 +223,21 @@ class SdkKsefGateway implements KsefGateway
             ], $report->messages),
             new DateTimeImmutable,
         );
+    }
+
+    public function requestOfflineCertificate(Company $company): OfflineCertificateIssued
+    {
+        try {
+            $issued = $this->clients->make($company)->requestCertificate('KSeF App offline invoicing', CertificateType::Offline);
+        } catch (ManualSignatureRequiredException) {
+            throw new SigningRequired;
+        } catch (KsefException $e) {
+            throw new OfflineCertificateRefused($e->getMessage(), 0, $e);
+        }
+
+        $parsed = openssl_x509_parse($issued->certificatePem);
+        $expires = is_array($parsed) && isset($parsed['validTo_time_t']) ? (new DateTimeImmutable)->setTimestamp((int) $parsed['validTo_time_t']) : null;
+
+        return new OfflineCertificateIssued($issued->serialNumber, $issued->certificatePem, $issued->privateKeyPem, $expires);
     }
 }

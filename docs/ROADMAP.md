@@ -25,7 +25,7 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 
 ## M4: Stay safe
 - [x] Availability banner (production only: the TEST availability service shows made-up failures)
-- [ ] Offline invoices with the delivery deadline and a reminder
+- [x] Offline invoices: the Offline certificate, QR codes I and II, the delivery deadline, a reminder on the dashboard, delivery with one click
 - [ ] Error handling in the UI: rejected invoices explained, retries without duplicates
 - [ ] Audit log; backup and restore
 

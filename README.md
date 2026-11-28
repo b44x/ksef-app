@@ -19,6 +19,8 @@ protocol the same way the SDK does: encryption, XAdES signing, schema validation
 | ![Accepted by KSeF](docs/screenshots/18-invoice-accepted.png) | ![Purchases](docs/screenshots/21-purchases.png) |
 | **On a phone** | **When KSeF is down** |
 | ![Mobile](docs/screenshots/14-invoice-draft-mobile.png) | ![Availability banner](docs/screenshots/25-availability-banner.png) |
+| **An offline invoice with its two QR codes** | **Choosing why to issue offline** |
+| ![Offline invoice](docs/screenshots/27-invoice-offline.png) | ![Offline dialog](docs/screenshots/28-issue-offline-dialog.png) |
 
 The totals next to the lines are computed by the SDK as you type, never in the browser.
 
@@ -30,7 +32,8 @@ The totals next to the lines are computed by the SDK as you type, never in the b
 - **Issue** invoices (VAT, corrections, advance and settlement invoices), with contractors, products and numbering
   series; send them, follow their status, keep the UPO and print the QR code.
 - **Receive** purchase invoices by synchronising from KSeF, browse and search them, download XML and PDF.
-- **Stay safe when KSeF is down**: availability banner, offline invoices with their delivery deadline.
+- **Stay safe when KSeF is down**: a banner while KSeF is down (production), offline invoices with their two QR codes,
+  the delivery deadline counted in Polish business days, and a reminder until they are delivered.
 - **Run anywhere**: in a browser (Docker, a server, a NAS) first; as a desktop app for Windows and macOS from the same code.
 
 Designed for one company per installation, with the data model ready for many companies.

@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "b44x/ksef-php": "^0.12",
+        "bacon/bacon-qr-code": "^3.0",
         "inertiajs/inertia-laravel": "*",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",

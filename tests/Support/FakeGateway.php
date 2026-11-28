@@ -8,6 +8,8 @@ use App\Ksef\CheckOutcome;
 use App\Ksef\ConnectionCheck;
 use App\Ksef\ConnectionReport;
 use App\Ksef\KsefGateway;
+use App\Ksef\OfflineCertificateIssued;
+use App\Ksef\OfflineCertificateRefused;
 use App\Ksef\PurchaseBatch;
 use App\Ksef\SigningRefused;
 use App\Ksef\SigningRequest;
@@ -62,6 +64,13 @@ final class FakeGateway implements KsefGateway
 
     public int $availabilityAsked = 0;
 
+    /** @var list<bool> whether each document was declared as offline */
+    public array $submittedOffline = [];
+
+    public ?OfflineCertificateRefused $refuseCertificate = null;
+
+    public int $certificatesRequested = 0;
+
     private int $asked = 0;
 
     public function __construct(private readonly bool $healthy = true)
@@ -78,8 +87,9 @@ final class FakeGateway implements KsefGateway
         ]);
     }
 
-    public function submit(Company $company, string $xml): Submission
+    public function submit(Company $company, string $xml, bool $offline = false): Submission
     {
+        $this->submittedOffline[] = $offline;
         if ($this->needsSigning !== null) {
             throw $this->needsSigning;
         }
@@ -146,5 +156,17 @@ final class FakeGateway implements KsefGateway
         }
 
         return $this->availability;
+    }
+
+    public function requestOfflineCertificate(Company $company): OfflineCertificateIssued
+    {
+        $this->certificatesRequested++;
+        if ($this->refuseCertificate !== null) {
+            throw $this->refuseCertificate;
+        }
+
+        [$certificate, $key] = OfflineCertificates::make();
+
+        return new OfflineCertificateIssued('FAKE-SERIAL', $certificate, $key, new \DateTimeImmutable('+2 years'));
     }
 }

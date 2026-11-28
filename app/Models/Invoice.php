@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\OfflineMode;
 use App\Ksef\Submission;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,11 @@ use Illuminate\Support\Carbon;
  * @property string|null $xml
  * @property array{seller: array<string, string|null>, buyer: array<string, string|null>}|null $snapshot
  * @property Carbon|null $issued_at
+ * @property OfflineMode|null $offline_mode
+ * @property Carbon|null $offline_anchor_date
+ * @property Carbon|null $offline_deadline
+ * @property string|null $verification_url
+ * @property string|null $issuer_url
  * @property string|null $ksef_session_reference
  * @property string|null $ksef_invoice_reference
  * @property string|null $ksef_invoice_hash
@@ -54,6 +60,9 @@ class Invoice extends Model
             'due_date' => 'date',
             'snapshot' => 'array',
             'issued_at' => 'datetime',
+            'offline_mode' => OfflineMode::class,
+            'offline_anchor_date' => 'date',
+            'offline_deadline' => 'datetime',
             'sent_at' => 'datetime',
             'accepted_at' => 'datetime',
         ];

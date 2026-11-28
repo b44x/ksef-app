@@ -11,6 +11,8 @@ interface Row {
     status: string;
     status_label: string;
     status_tone: 'warning' | 'primary' | 'success' | 'danger';
+    offline: boolean;
+    offline_deadline: string | null;
     issue_date: string;
     contractor: string;
     currency: string;
@@ -71,6 +73,14 @@ export default function Invoices({ invoices }: { invoices: Row[] }) {
                                     </td>
                                     <td>
                                         <Badge tone={i.status_tone}>{i.status_label}</Badge>
+                                        {i.offline && (
+                                            <span className="ml-2 text-xs text-muted">
+                                                {t('offline')}
+                                                {i.offline_deadline
+                                                    ? ` · ${t('deliver by')} ${i.offline_deadline}`
+                                                    : ''}
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

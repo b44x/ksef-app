@@ -33,7 +33,7 @@ class SendInvoiceJob implements ShouldQueue
         }
 
         try {
-            $submission = $gateway->submit($invoice->company, (string) $invoice->xml);
+            $submission = $gateway->submit($invoice->company, (string) $invoice->xml, $invoice->offline_mode !== null);
         } catch (SigningRequired $e) {
             $this->back($invoice, $e->getMessage());
 

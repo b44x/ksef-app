@@ -1,5 +1,5 @@
-import { useForm, usePage } from '@inertiajs/react';
-import { Check } from 'lucide-react';
+import { router, useForm, usePage } from '@inertiajs/react';
+import { Check, WifiOff } from 'lucide-react';
 import { Button } from '../Components/Button';
 import ConnectionReport from '../Components/ConnectionReport';
 import { Field, Input, Select, Textarea } from '../Components/Form';
@@ -24,13 +24,18 @@ interface Props {
         auth_method: string;
         has_secrets: boolean;
     } | null;
+    offline: { has: boolean; expires_at: string | null; usable: boolean } | null;
     environments: Option[];
     methods: Option[];
 }
 
-export default function Company({ company, environments, methods }: Props) {
+export default function Company({ company, offline, environments, methods }: Props) {
     const t = useT();
-    const { report } = usePage<SharedProps>().props;
+    const {
+        report,
+        locale,
+        errors: pageErrors,
+    } = usePage<SharedProps>().props as SharedProps & { errors: Record<string, string> };
     const form = useForm({
         name: company?.name ?? '',
         nip: company?.nip ?? '',
@@ -185,6 +190,64 @@ export default function Company({ company, environments, methods }: Props) {
                     </div>
                 </Card>
             </form>
+
+            {company && offline && (
+                <Card
+                    title={t('Offline invoicing')}
+                    description={t('Lets you issue invoices when KSeF is down, with QR codes, and deliver them later.')}
+                    className="mt-6"
+                    action={
+                        offline.has ? (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    window.confirm(
+                                        t(
+                                            'Remove the Offline certificate? Its key cannot be recovered; you would request a new one.',
+                                        ),
+                                    ) && router.delete('/company/offline-certificate')
+                                }
+                            >
+                                {t('Remove')}
+                            </Button>
+                        ) : undefined
+                    }
+                >
+                    <div className="space-y-4 text-sm">
+                        {offline.usable ? (
+                            <p className="flex items-center gap-2 text-success">
+                                <Check className="size-4" aria-hidden />
+                                {t('The Offline certificate is ready.')}
+                                {offline.expires_at && (
+                                    <span className="text-muted">
+                                        {t('Valid until :date.', {
+                                            date: new Date(offline.expires_at).toLocaleDateString(
+                                                locale === 'pl' ? 'pl-PL' : 'en-GB',
+                                            ),
+                                        })}
+                                    </span>
+                                )}
+                            </p>
+                        ) : (
+                            <p className="text-muted">
+                                {offline.has
+                                    ? t('The Offline certificate has expired. Request a new one while KSeF is up.')
+                                    : t(
+                                          'Request the Offline certificate while KSeF is up. It confirms you as the issuer in QR code II and cannot log in. It needs a login made with a signature (a certificate or a trusted profile), not a token.',
+                                      )}
+                            </p>
+                        )}
+                        {pageErrors.offline && <Alert tone="warning">{pageErrors.offline}</Alert>}
+                        {!offline.usable && (
+                            <Button variant="secondary" onClick={() => router.post('/company/offline-certificate')}>
+                                <WifiOff className="size-4" />
+                                {t('Request the Offline certificate')}
+                            </Button>
+                        )}
+                    </div>
+                </Card>
+            )}
 
             {report && (
                 <Card title={t('Connection check')} className="mt-6">

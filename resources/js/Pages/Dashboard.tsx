@@ -1,6 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
-import { FilePlus2, FileText, Package, PlugZap, Users } from 'lucide-react';
-import { Badge, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
+import { FilePlus2, FileText, Package, PlugZap, Send, Users } from 'lucide-react';
+import { Alert, Badge, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
 import { Button, ButtonLink } from '../Components/Button';
 import ConnectionReport from '../Components/ConnectionReport';
 import { useT } from '../i18n';
@@ -10,6 +10,7 @@ import type { SharedProps } from '../types';
 
 interface Props {
     stats: { drafts: number; contractors: number; products: number };
+    offline: { waiting: number; overdue: number; next_deadline: string | null; undated: number } | null;
     recent: {
         id: number;
         number: string | null;
@@ -39,10 +40,10 @@ function Stat({ icon, label, value, href }: { icon: React.ReactNode; label: stri
     );
 }
 
-export default function Dashboard({ stats, recent, details }: Props) {
+export default function Dashboard({ stats, offline, recent, details }: Props) {
     const t = useT();
     const money = useMoney();
-    const { report } = usePage<SharedProps>().props;
+    const { report, locale } = usePage<SharedProps>().props;
     const live = details.environment_key === 'production';
 
     return (
@@ -58,6 +59,42 @@ export default function Dashboard({ stats, recent, details }: Props) {
                     </ButtonLink>
                 }
             />
+
+            {offline && (
+                <div className="mb-6">
+                    <Alert tone={offline.overdue > 0 ? 'danger' : 'warning'}>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <div className="font-medium">
+                                    {t(':count offline invoice(s) waiting for delivery to KSeF', {
+                                        count: offline.waiting,
+                                    })}
+                                </div>
+                                <div className="text-sm">
+                                    {offline.overdue > 0 && (
+                                        <span className="font-medium">
+                                            {t(':count past the deadline.', { count: offline.overdue })}{' '}
+                                        </span>
+                                    )}
+                                    {offline.next_deadline &&
+                                        t('Nearest deadline: :date.', {
+                                            date: new Date(offline.next_deadline).toLocaleDateString(
+                                                locale === 'pl' ? 'pl-PL' : 'en-GB',
+                                                { dateStyle: 'long' },
+                                            ),
+                                        })}
+                                    {offline.undated > 0 &&
+                                        ` ${t(':count without a deadline yet (a failure has not ended).', { count: offline.undated })}`}
+                                </div>
+                            </div>
+                            <Button variant="secondary" size="sm" onClick={() => router.post('/invoices/send-offline')}>
+                                <Send className="size-4" />
+                                {t('Deliver all to KSeF')}
+                            </Button>
+                        </div>
+                    </Alert>
+                </div>
+            )}
 
             <div className="mb-6 grid gap-4 sm:grid-cols-3">
                 <Stat

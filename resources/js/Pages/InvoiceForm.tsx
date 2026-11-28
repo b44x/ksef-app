@@ -1,6 +1,8 @@
 import { router, useForm } from '@inertiajs/react';
-import { AlertTriangle, CheckCircle2, FileCheck2, Plus, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileCheck2, Plus, Save, Trash2, WifiOff } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '../Components/Button';
+import { type OfflineOptions, OfflineIssueDialog } from '../Components/OfflineIssueDialog';
 import { Field, Input, Select, Textarea } from '../Components/Form';
 import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
 import { useTotals } from '../hooks/useTotals';
@@ -40,6 +42,7 @@ interface Props {
     products: { id: number; name: string; unit: string; net_price: string; vat_rate: string }[];
     vatRates: string[];
     paymentMethods: { value: string; label: string }[];
+    offline: OfflineOptions;
 }
 
 const blankLine: InvoiceLineForm = { name: '', unit: 'szt.', quantity: '1', unit_net_price: '', vat_rate: '23' };
@@ -63,6 +66,7 @@ export default function InvoiceForm({
     products,
     vatRates,
     paymentMethods,
+    offline,
 }: Props) {
     const t = useT();
     const money = useMoney();
@@ -130,6 +134,7 @@ export default function InvoiceForm({
             router.post(`/invoices/${invoice.id}/issue`);
         }
     };
+    const [offlineOpen, setOfflineOpen] = useState(false);
     const number = invoice ? invoice.preview_number : t('Number is given when you issue the invoice');
 
     return (
@@ -154,6 +159,12 @@ export default function InvoiceForm({
                             <Save className="size-4" />
                             {t('Save draft')}
                         </Button>
+                        {canIssue && offline.available && (
+                            <Button variant="secondary" onClick={() => setOfflineOpen(true)}>
+                                <WifiOff className="size-4" />
+                                {t('Issue offline')}
+                            </Button>
+                        )}
                         {canIssue && (
                             <Button onClick={issue}>
                                 <FileCheck2 className="size-4" />
@@ -163,6 +174,15 @@ export default function InvoiceForm({
                     </>
                 }
             />
+
+            {invoice && (
+                <OfflineIssueDialog
+                    invoiceId={invoice.id}
+                    offline={offline}
+                    open={offlineOpen}
+                    onClose={() => setOfflineOpen(false)}
+                />
+            )}
 
             {errors.issue && (
                 <div className="mb-6">

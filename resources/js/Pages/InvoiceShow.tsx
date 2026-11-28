@@ -1,6 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { CheckCircle2, CircleDashed, Copy, CopyPlus, Download, Loader2, RefreshCw, Send, XCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, ButtonLink } from '../Components/Button';
 import { type Party, PartyBlock } from '../Components/PartyBlock';
 import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
@@ -40,6 +40,16 @@ interface Props {
     totals: TotalsPreview;
     canSend: boolean;
     needsSigning: boolean;
+    offline: {
+        mode: string;
+        label: string;
+        hint: string;
+        needs_anchor: boolean;
+        anchor_date: string | null;
+        deadline: string | null;
+        overdue: boolean;
+    } | null;
+    qr: { verification: string; issuer: string | null } | null;
 }
 
 /** Where the invoice stands on its way to KSeF: issued, sent, accepted (or rejected). */
@@ -90,10 +100,10 @@ function Delivery({ invoice }: { invoice: Props['invoice'] }) {
     );
 }
 
-export default function InvoiceShow({ invoice, totals, canSend, needsSigning }: Props) {
+export default function InvoiceShow({ invoice, totals, canSend, needsSigning, offline, qr }: Props) {
     const t = useT();
     const money = useMoney();
-    const { errors } = usePage<SharedProps>().props as SharedProps & { errors: Record<string, string> };
+    const { errors, locale } = usePage<SharedProps>().props as SharedProps & { errors: Record<string, string> };
     const sending = invoice.status === 'sending';
 
     // While KSeF is checking the invoice the page follows along; it stops by itself when the verdict arrives.
@@ -107,6 +117,9 @@ export default function InvoiceShow({ invoice, totals, canSend, needsSigning }: 
     }, [sending]);
 
     const send = () => router.post(`/invoices/${invoice.id}/send`);
+    const [anchor, setAnchor] = useState('');
+    const when = (iso: string) =>
+        new Date(iso).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-GB', { dateStyle: 'long' });
 
     return (
         <AppLayout>
@@ -128,7 +141,7 @@ export default function InvoiceShow({ invoice, totals, canSend, needsSigning }: 
                         {invoice.status === 'issued' && (
                             <Button onClick={send} disabled={!canSend}>
                                 <Send className="size-4" />
-                                {t('Send to KSeF')}
+                                {offline ? t('Deliver to KSeF') : t('Send to KSeF')}
                             </Button>
                         )}
                         {invoice.status === 'rejected' && (
@@ -143,6 +156,55 @@ export default function InvoiceShow({ invoice, totals, canSend, needsSigning }: 
 
             <Card title={t('Delivery to KSeF')} className="mb-6">
                 <div className="space-y-4">
+                    {offline && invoice.status === 'issued' && (
+                        <Alert tone={offline.overdue ? 'danger' : 'warning'}>
+                            <div className="font-medium">
+                                {t('Issued offline')}: {offline.label}
+                            </div>
+                            {offline.deadline ? (
+                                <div>
+                                    {offline.overdue
+                                        ? t('The delivery deadline passed on :date. Deliver it to KSeF now.', {
+                                              date: when(offline.deadline),
+                                          })
+                                        : t('Deliver it to KSeF by the end of :date.', {
+                                              date: when(offline.deadline),
+                                          })}
+                                </div>
+                            ) : (
+                                <form
+                                    className="mt-2 flex flex-wrap items-end gap-2"
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        router.post(`/invoices/${invoice.id}/offline-anchor`, { anchor_date: anchor });
+                                    }}
+                                >
+                                    <label className="text-sm">
+                                        <span className="mb-1 block">
+                                            {t('The deadline counts from the day KSeF is back. When did it end?')}
+                                        </span>
+                                        <input
+                                            type="date"
+                                            required
+                                            value={anchor}
+                                            onChange={(e) => setAnchor(e.target.value)}
+                                            className="h-9 rounded-lg border border-border-strong bg-surface px-2 text-sm text-text"
+                                        />
+                                    </label>
+                                    <Button type="submit" size="sm" variant="secondary" disabled={anchor === ''}>
+                                        {t('Set the deadline')}
+                                    </Button>
+                                </form>
+                            )}
+                            {errors.anchor_date && <div className="mt-1 text-xs">{errors.anchor_date}</div>}
+                        </Alert>
+                    )}
+                    {offline && invoice.status !== 'issued' && (
+                        <p className="text-sm text-muted">
+                            {t('Issued offline')}: {offline.label}
+                        </p>
+                    )}
+
                     <Delivery invoice={invoice} />
 
                     {invoice.ksef.number && (
@@ -311,6 +373,41 @@ export default function InvoiceShow({ invoice, totals, canSend, needsSigning }: 
                     </div>
                 </div>
             </div>
+
+            {qr && (
+                <Card
+                    title={t('QR codes')}
+                    description={
+                        offline
+                            ? t('Print both on the invoice you hand to the buyer.')
+                            : t('Scan to verify the invoice in KSeF.')
+                    }
+                    className="mt-6"
+                >
+                    <div className="flex flex-wrap items-start gap-8">
+                        <figure>
+                            <div
+                                className="w-44 sm:w-56 [&>svg]:h-auto [&>svg]:w-full"
+                                dangerouslySetInnerHTML={{ __html: qr.verification }}
+                            />
+                            <figcaption className="mt-2 text-xs text-muted">
+                                {t('QR code I: verifies the invoice in KSeF')}
+                            </figcaption>
+                        </figure>
+                        {qr.issuer && (
+                            <figure>
+                                <div
+                                    className="w-44 sm:w-56 [&>svg]:h-auto [&>svg]:w-full"
+                                    dangerouslySetInnerHTML={{ __html: qr.issuer }}
+                                />
+                                <figcaption className="mt-2 text-xs text-muted">
+                                    {t('QR code II: confirms the issuer')}
+                                </figcaption>
+                            </figure>
+                        )}
+                    </div>
+                </Card>
+            )}
 
             <Card title={t('FA(3) document')} description={t('The exact XML that is sent to KSeF.')} className="mt-6">
                 <pre className="max-h-96 overflow-auto rounded-lg bg-surface-muted p-4 font-mono text-xs leading-relaxed">

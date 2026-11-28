@@ -26,6 +26,7 @@ class DashboardController extends Controller
                 'contractors' => $company->contractors()->count(),
                 'products' => $company->products()->count(),
             ],
+            'offline' => $this->offlineWaiting($company),
             'recent' => $recent->map(fn ($i): array => InvoiceRow::of($i)),
             'details' => [
                 'name' => $company->name,
@@ -35,5 +36,27 @@ class DashboardController extends Controller
                 'auth_method' => $company->auth_method->label(),
             ],
         ]);
+    }
+
+    /**
+     * The offline invoices that still have to reach KSeF, with the nearest deadline: the reminder on the dashboard.
+     *
+     * @return array{waiting: int, overdue: int, next_deadline: string|null, undated: int}|null
+     */
+    private function offlineWaiting(Company $company): ?array
+    {
+        $waiting = $company->invoices()->where('status', InvoiceStatus::Issued)->whereNotNull('offline_mode')->get(['offline_deadline']);
+        if ($waiting->isEmpty()) {
+            return null;
+        }
+
+        $dated = $waiting->whereNotNull('offline_deadline');
+
+        return [
+            'waiting' => $waiting->count(),
+            'overdue' => $dated->filter(fn ($i) => $i->offline_deadline->isPast())->count(),
+            'next_deadline' => $dated->min('offline_deadline')?->toIso8601String(),
+            'undated' => $waiting->count() - $dated->count(),
+        ];
     }
 }

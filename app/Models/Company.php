@@ -23,12 +23,14 @@ use Illuminate\Support\Carbon;
  * @property KsefEnvironment $environment
  * @property AuthMethod $auth_method
  * @property array<string, string>|null $credentials
+ * @property array{certificate: string, private_key: string}|null $offline_certificate
+ * @property Carbon|null $offline_certificate_expires_at
  * @property Carbon|null $purchases_synced_until
  * @property Carbon|null $purchases_synced_at
  * @property string|null $purchases_sync_error
  */
 #[Fillable(['name', 'nip', 'address_line1', 'address_line2', 'email', 'environment', 'auth_method', 'credentials'])]
-#[Hidden(['credentials'])]
+#[Hidden(['credentials', 'offline_certificate'])]
 class Company extends Model
 {
     /**
@@ -40,6 +42,8 @@ class Company extends Model
             'environment' => KsefEnvironment::class,
             'auth_method' => AuthMethod::class,
             'credentials' => 'encrypted:array',
+            'offline_certificate' => 'encrypted:array',
+            'offline_certificate_expires_at' => 'datetime',
             'purchases_synced_until' => 'datetime',
             'purchases_synced_at' => 'datetime',
         ];
@@ -112,6 +116,13 @@ class Company extends Model
         $until = $this->tokens()->where('expires_at', '>', now())->max('expires_at');
 
         return $until === null ? null : Carbon::parse((string) $until);
+    }
+
+    /** Whether invoices can be issued offline: there is an Offline certificate that has not expired. */
+    public function canIssueOffline(): bool
+    {
+        return $this->offline_certificate !== null
+            && ($this->offline_certificate_expires_at === null || $this->offline_certificate_expires_at->isFuture());
     }
 
     /** The company signs in by hand and has no valid login: nothing can be sent or fetched until the person signs. */

@@ -17,14 +17,15 @@ interface KsefGateway
     public function check(Company $company): ConnectionReport;
 
     /**
-     * Hands an issued invoice's FA(3) document to KSeF. "Accepted for processing" is all this promises: the verdict
+     * Hands an issued invoice's FA(3) document to KSeF; `$offline` declares that it was issued in an offline mode and is
+     * delivered late. "Accepted for processing" is all this promises: the verdict
      * comes from {@see self::status()}.
      *
      * @throws SubmissionRefused when KSeF stored nothing (sending again is safe)
      * @throws SubmissionUncertain when the connection failed on the way (sending again is safe too)
      * @throws SigningRequired when the company signs in by hand and has no valid login
      */
-    public function submit(Company $company, string $xml): Submission;
+    public function submit(Company $company, string $xml, bool $offline = false): Submission;
 
     /**
      * Asks KSeF for its verdict on a submitted invoice. Does not wait.
@@ -39,6 +40,14 @@ interface KsefGateway
      * @throws SigningRequired when the company signs in by hand and has no valid login
      */
     public function upo(Company $company, Submission $submission): ?string;
+
+    /**
+     * Asks KSeF for an Offline certificate (the key is made here). Needs a login made with a signature, not a token.
+     *
+     * @throws OfflineCertificateRefused when KSeF would not issue one
+     * @throws SigningRequired when the company signs in by hand and has no valid login
+     */
+    public function requestOfflineCertificate(Company $company): OfflineCertificateIssued;
 
     /**
      * Whether KSeF is up, from the Ministry's public availability service. Needs no login.

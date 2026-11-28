@@ -9,6 +9,7 @@ use App\Http\Controllers\KsefSignInController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\NumberingSeriesController;
+use App\Http\Controllers\OfflineCertificateController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SetupController;
@@ -32,6 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/company/signin/request.xml', [KsefSignInController::class, 'download'])->name('signin.download');
     Route::post('/company/signin/complete', [KsefSignInController::class, 'complete'])->name('signin.complete');
     Route::delete('/company/signin', [KsefSignInController::class, 'destroy'])->name('signin.destroy');
+    Route::post('/company/offline-certificate', [OfflineCertificateController::class, 'store'])->name('offline-certificate.store');
+    Route::delete('/company/offline-certificate', [OfflineCertificateController::class, 'destroy'])->name('offline-certificate.destroy');
     Route::post('/company/check', [ConnectionCheckController::class, 'store'])->name('company.check');
     Route::get('/contractors', [ContractorController::class, 'index'])->name('contractors.index');
     Route::post('/contractors', [ContractorController::class, 'store'])->name('contractors.store');
@@ -39,6 +42,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/contractors/{contractor}', [ContractorController::class, 'destroy'])->name('contractors.destroy');
     Route::post('/invoices/preview', [InvoiceController::class, 'preview'])->name('invoices.preview');
     Route::post('/invoices/{invoice}/issue', [InvoiceController::class, 'issue'])->name('invoices.issue');
+    Route::post('/invoices/send-offline', [InvoiceController::class, 'sendOffline'])->name('invoices.send-offline');
+    Route::post('/invoices/{invoice}/offline-anchor', [InvoiceController::class, 'offlineAnchor'])->name('invoices.offline-anchor');
     Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
     Route::post('/invoices/{invoice}/check', [InvoiceController::class, 'check'])->name('invoices.check');
     Route::post('/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
