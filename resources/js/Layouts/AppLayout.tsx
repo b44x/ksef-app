@@ -5,6 +5,7 @@ import {
     FileText,
     Hash,
     Inbox,
+    KeyRound,
     LayoutDashboard,
     LogOut,
     Menu,
@@ -82,7 +83,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
 /** The teal bar across the top of every page: where you are working (company) and who you are. */
 function TopBar({ onMenu }: { onMenu: () => void }) {
     const t = useT();
-    const { auth, company, locale, locales } = usePage<SharedProps>().props;
+    const { auth, company, locale, locales, ksefSession } = usePage<SharedProps>().props;
 
     return (
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-gradient-to-r from-hero-from to-hero-to px-4 text-white shadow-sm sm:px-8">
@@ -96,6 +97,22 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
                     </div>
                 )}
             </div>
+            {ksefSession && (
+                <Link
+                    href="/company/signin"
+                    className={`inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium ${ksefSession.active_until ? 'bg-white/15 hover:bg-white/25' : 'bg-amber-300 text-amber-950 hover:bg-amber-200'}`}
+                >
+                    <KeyRound className="size-4" aria-hidden />
+                    {ksefSession.active_until
+                        ? t('Signed in to KSeF until :time', {
+                              time: new Date(ksefSession.active_until).toLocaleTimeString(
+                                  locale === 'pl' ? 'pl-PL' : 'en-GB',
+                                  { hour: '2-digit', minute: '2-digit' },
+                              ),
+                          })
+                        : t('Sign in to KSeF')}
+                </Link>
+            )}
             <select
                 aria-label={t('Language')}
                 value={locale}

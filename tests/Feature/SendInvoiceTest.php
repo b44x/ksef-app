@@ -260,7 +260,7 @@ class SendInvoiceTest extends TestCase
             ->where('canSend', false));
 
         $this->invoice->forceFill(['status' => InvoiceStatus::Issued])->save();
-        $this->get("/invoices/{$this->invoice->id}")->assertInertia(fn (Assert $page) => $page->where('canSend', true)->where('manualLogin', false));
+        $this->get("/invoices/{$this->invoice->id}")->assertInertia(fn (Assert $page) => $page->where('canSend', true)->where('needsSigning', false));
     }
 
     public function test_a_rejected_invoice_can_be_copied_to_a_new_draft(): void

@@ -31,7 +31,7 @@ interface Props {
         to: number | null;
     };
     filters: { q: string; from: string; to: string; unread: boolean };
-    sync: { started: boolean; at: string | null; error: string | null; running: boolean; manual_login: boolean };
+    sync: { started: boolean; at: string | null; error: string | null; running: boolean; needs_signing: boolean };
     defaultSince: string;
 }
 
@@ -89,7 +89,7 @@ export default function Purchases({ invoices, filters, sync, defaultSince }: Pro
                 description={t('Invoices other companies issued to you, brought from KSeF.')}
                 actions={
                     sync.started && (
-                        <Button onClick={startFetch} disabled={sync.running || sync.manual_login}>
+                        <Button onClick={startFetch} disabled={sync.running || sync.needs_signing}>
                             {sync.running ? (
                                 <Loader2 className="size-4 animate-spin" />
                             ) : (
@@ -102,11 +102,12 @@ export default function Purchases({ invoices, filters, sync, defaultSince }: Pro
             />
 
             <div className="mb-6 space-y-3">
-                {sync.manual_login && (
+                {sync.needs_signing && (
                     <Alert tone="info">
-                        {t(
-                            'This company signs in to KSeF by hand, which is not available for receiving yet. Use a token or a certificate in the company settings.',
-                        )}
+                        {t('Sign in to KSeF first: the signed login has expired or was never made.')}{' '}
+                        <a href="/company/signin" className="font-medium underline">
+                            {t('Sign in to KSeF')}
+                        </a>
                     </Alert>
                 )}
                 {(sync.error || errors.sync || errors.since) && (
@@ -145,7 +146,7 @@ export default function Purchases({ invoices, filters, sync, defaultSince }: Pro
                                 </label>
                                 <Button
                                     onClick={startFetch}
-                                    disabled={sync.running || sync.manual_login || since === ''}
+                                    disabled={sync.running || sync.needs_signing || since === ''}
                                 >
                                     <RefreshCw className="size-4" />
                                     {t('Fetch from KSeF')}

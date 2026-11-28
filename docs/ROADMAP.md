@@ -8,7 +8,7 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Sign in; first-run setup of the administrator
 - [x] Onboarding: environment, NIP, token or certificate (a signature made outside the app is stored as a choice; the signing screen is still to do)
 - [x] Connection check (what `ksef-doctor` does), shown in the UI
-- [ ] Signing screen for logins signed outside the app (trusted profile)
+- [x] Signing screen: for companies without a token or a certificate, the login is signed outside the app (qualified signature, trusted profile) and kept as long as KSeF allows
 
 ## M2: Issue invoices
 - [x] Contractors
@@ -17,7 +17,6 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] Issue: the number from the series, the FA(3) built and schema-validated by the SDK, both frozen; XML download
 - [ ] Corrections, advance and settlement invoices
 - [x] Send in the background (queue), follow the status, keep the UPO and the KSeF number; safe to send again after a lost connection
-- [ ] Signing screen for companies that log in by hand (sending needs a token or a certificate until then)
 - [ ] Invoice view with the QR code; download the XML
 
 ## M3: Receive invoices

@@ -19,6 +19,7 @@ export interface SharedProps {
     report: Report | null;
     status: string | null;
     unreadPurchases: number;
+    ksefSession: { manual: boolean; active_until: string | null } | null;
     credits: { author: string; years: string; url: string; license: string };
     locale: string;
     locales: Record<string, string>;

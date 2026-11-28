@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\AuthMethod;
 use App\Http\Controllers\Concerns\ScopedToCompany;
 use App\Jobs\SyncPurchasesJob;
 use App\Models\Company;
@@ -74,7 +73,7 @@ class PurchaseController extends Controller
                 'at' => $company->purchases_synced_at?->toIso8601String(),
                 'error' => $company->purchases_sync_error,
                 'running' => Cache::has(SyncPurchasesJob::runningKey($company->id)),
-                'manual_login' => $company->auth_method === AuthMethod::Manual,
+                'needs_signing' => $company->needsSigningIn(),
             ],
             'defaultSince' => now()->subDays(SyncPurchases::DEFAULT_LOOKBACK_DAYS)->toDateString(),
         ]);
@@ -119,8 +118,8 @@ class PurchaseController extends Controller
 
         $data = $request->validate(['since' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today']]);
 
-        if ($company->auth_method === AuthMethod::Manual) {
-            return back()->withErrors(['sync' => __('This company signs in to KSeF by hand, which is not available for receiving yet. Use a token or a certificate in the company settings.')]);
+        if ($company->needsSigningIn()) {
+            return back()->withErrors(['sync' => __('Sign in to KSeF first: the signed login has expired or was never made.')]);
         }
         if (Cache::has(SyncPurchasesJob::runningKey($company->id))) {
             return back();

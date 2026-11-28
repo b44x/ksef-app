@@ -39,7 +39,7 @@ interface Props {
     };
     totals: TotalsPreview;
     canSend: boolean;
-    manualLogin: boolean;
+    needsSigning: boolean;
 }
 
 /** Where the invoice stands on its way to KSeF: issued, sent, accepted (or rejected). */
@@ -90,7 +90,7 @@ function Delivery({ invoice }: { invoice: Props['invoice'] }) {
     );
 }
 
-export default function InvoiceShow({ invoice, totals, canSend, manualLogin }: Props) {
+export default function InvoiceShow({ invoice, totals, canSend, needsSigning }: Props) {
     const t = useT();
     const money = useMoney();
     const { errors } = usePage<SharedProps>().props as SharedProps & { errors: Record<string, string> };
@@ -177,11 +177,12 @@ export default function InvoiceShow({ invoice, totals, canSend, manualLogin }: P
                         </p>
                     )}
 
-                    {invoice.status === 'issued' && manualLogin && (
+                    {invoice.status === 'issued' && needsSigning && (
                         <Alert tone="info">
-                            {t(
-                                'This company signs in to KSeF by hand, which is not available for sending yet. Use a token or a certificate in the company settings.',
-                            )}
+                            {t('Sign in to KSeF first: the signed login has expired or was never made.')}{' '}
+                            <a href="/company/signin" className="font-medium underline">
+                                {t('Sign in to KSeF')}
+                            </a>
                         </Alert>
                     )}
 

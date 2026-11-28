@@ -99,6 +99,27 @@ class Company extends Model
         return $this->hasMany(ReceivedInvoice::class);
     }
 
+    /**
+     * Until when a login made by hand still works: the SDK keeps the tokens of a signed login in the database until its
+     * refresh token expires. Null when this company does not sign in by hand, or has no valid login.
+     */
+    public function signedInUntil(): ?Carbon
+    {
+        if ($this->auth_method !== AuthMethod::Manual) {
+            return null;
+        }
+
+        $until = $this->tokens()->where('expires_at', '>', now())->max('expires_at');
+
+        return $until === null ? null : Carbon::parse((string) $until);
+    }
+
+    /** The company signs in by hand and has no valid login: nothing can be sent or fetched until the person signs. */
+    public function needsSigningIn(): bool
+    {
+        return $this->auth_method === AuthMethod::Manual && $this->signedInUntil() === null;
+    }
+
     /** A stored credential value (for example "token", "certificate", "private_key"), or null. */
     public function credential(string $key): ?string
     {

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\InvoiceStatus;
 use App\Ksef\KsefGateway;
+use App\Ksef\SigningRequired;
 use App\Ksef\SubmissionState;
 use App\Models\Invoice;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -36,6 +37,11 @@ class PollInvoiceStatusJob implements ShouldQueue
 
         try {
             $verdict = $gateway->status($invoice->company, $submission);
+        } catch (SigningRequired $e) {
+            // Waiting does not help: the person has to sign in. Asking again is up to them ("Check status").
+            $invoice->forceFill(['ksef_error' => $e->getMessage()])->save();
+
+            return;
         } catch (Throwable) {
             // A hiccup on the way is not an answer: ask again.
             $this->again($invoice);

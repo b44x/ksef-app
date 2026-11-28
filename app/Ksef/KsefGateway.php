@@ -32,6 +32,21 @@ interface KsefGateway
     public function upo(Company $company, Submission $submission): ?string;
 
     /**
+     * Step one of signing in by hand: the login document for the person to sign outside the application.
+     *
+     * @throws SigningRefused when the company does not sign in by hand, or KSeF could not be reached
+     */
+    public function signingRequest(Company $company): SigningRequest;
+
+    /**
+     * Step two: the document comes back signed. KSeF checks the signature and the login lasts (and is kept) until its
+     * refresh token expires.
+     *
+     * @throws SigningRefused when the document is not a signed request for this company, or KSeF refuses the signature
+     */
+    public function completeSigning(Company $company, string $signedXml): void;
+
+    /**
      * The purchase invoices (the company is the buyer) KSeF stored since a moment. One export at most: when KSeF cuts it
      * short the batch says where to continue.
      */

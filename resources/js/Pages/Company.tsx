@@ -173,7 +173,12 @@ export default function Company({ company, environments, methods }: Props) {
                         {form.data.auth_method === 'manual' && (
                             <div className="sm:col-span-2">
                                 <Alert tone="info">
-                                    {t('Nothing is stored. You will sign each login request yourself.')}
+                                    {t('Nothing is stored. You will sign each login request yourself.')}{' '}
+                                    {company?.auth_method === 'manual' && (
+                                        <a href="/company/signin" className="font-medium underline">
+                                            {t('Sign in to KSeF')}
+                                        </a>
+                                    )}
                                 </Alert>
                             </div>
                         )}

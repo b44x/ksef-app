@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\InvoiceStatus;
 use App\Ksef\KsefGateway;
+use App\Ksef\SigningRequired;
 use App\Ksef\SubmissionRefused;
 use App\Ksef\SubmissionUncertain;
 use App\Models\Invoice;
@@ -33,6 +34,10 @@ class SendInvoiceJob implements ShouldQueue
 
         try {
             $submission = $gateway->submit($invoice->company, (string) $invoice->xml);
+        } catch (SigningRequired $e) {
+            $this->back($invoice, $e->getMessage());
+
+            return;
         } catch (SubmissionRefused $e) {
             $this->back($invoice, __('KSeF did not take the invoice: :reason', ['reason' => $e->getMessage()]));
 

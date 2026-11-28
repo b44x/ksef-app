@@ -8,6 +8,7 @@ use B4x\Ksef\Api\InvoiceSubjectType;
 use B4x\Ksef\Doctor\CheckStatus;
 use B4x\Ksef\Doctor\Doctor;
 use B4x\Ksef\Exception\KsefException;
+use B4x\Ksef\Exception\ManualSignatureRequiredException;
 use B4x\Ksef\Exception\SubmissionOutcomeUnknownException;
 use B4x\Ksef\Status\InvoiceSubmission;
 use B4x\Ksef\Support\SystemClock;
@@ -67,6 +68,8 @@ class SdkKsefGateway implements KsefGateway
     {
         try {
             $sent = $this->clients->make($company)->sendInvoice($xml);
+        } catch (ManualSignatureRequiredException) {
+            throw new SigningRequired;
         } catch (SubmissionOutcomeUnknownException $e) {
             throw new SubmissionUncertain($e->getMessage(), 0, $e);
         } catch (KsefException $e) {
@@ -81,7 +84,11 @@ class SdkKsefGateway implements KsefGateway
 
     public function status(Company $company, Submission $submission): SubmissionStatus
     {
-        $invoice = $this->clients->make($company)->invoiceStatus($this->sdk($submission));
+        try {
+            $invoice = $this->clients->make($company)->invoiceStatus($this->sdk($submission));
+        } catch (ManualSignatureRequiredException) {
+            throw new SigningRequired;
+        }
         $status = $invoice->status;
         $number = $invoice->resolvedKsefNumber();
 
@@ -97,6 +104,8 @@ class SdkKsefGateway implements KsefGateway
     {
         try {
             return $this->clients->make($company)->invoiceUpo($this->sdk($submission))->xml;
+        } catch (ManualSignatureRequiredException) {
+            throw new SigningRequired;
         } catch (KsefException) {
             // Not available yet; it is asked for again later.
             return null;
@@ -120,6 +129,8 @@ class SdkKsefGateway implements KsefGateway
         try {
             $package = $client->exportInvoices(InvoiceSubjectType::Buyer, InvoiceDateType::PermanentStorage, $from, $to, $path);
             $documents = $package->invoiceCount > 0 ? $this->documents($path) : [];
+        } catch (ManualSignatureRequiredException) {
+            throw new SigningRequired;
         } finally {
             @unlink($path);
         }
@@ -164,5 +175,27 @@ class SdkKsefGateway implements KsefGateway
         }
 
         return $documents;
+    }
+
+    public function signingRequest(Company $company): SigningRequest
+    {
+        try {
+            $request = $this->clients->make($company)->createAuthenticationRequest();
+        } catch (KsefException $e) {
+            throw new SigningRefused($e->getMessage(), 0, $e);
+        }
+
+        return new SigningRequest($request->xml, $request->expiresAt);
+    }
+
+    public function completeSigning(Company $company, string $signedXml): void
+    {
+        try {
+            $this->clients->make($company)->authenticateWithSignedRequest($signedXml);
+        } catch (KsefException $e) {
+            // ValidationException ("not signed", "another company") and AuthenticationException (KSeF refused the signature)
+            // both explain themselves.
+            throw new SigningRefused($e->getMessage(), 0, $e);
+        }
     }
 }

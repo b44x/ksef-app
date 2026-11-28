@@ -7,6 +7,9 @@ use App\Ksef\ConnectionCheck;
 use App\Ksef\ConnectionReport;
 use App\Ksef\KsefGateway;
 use App\Ksef\PurchaseBatch;
+use App\Ksef\SigningRefused;
+use App\Ksef\SigningRequest;
+use App\Ksef\SigningRequired;
 use App\Ksef\Submission;
 use App\Ksef\SubmissionRefused;
 use App\Ksef\SubmissionState;
@@ -43,6 +46,14 @@ final class FakeGateway implements KsefGateway
 
     public ?\Throwable $purchasesFail = null;
 
+    /** @var list<string> the signed documents handed in */
+    public array $signed = [];
+
+    public ?SigningRefused $refuseSigning = null;
+
+    /** When set, every call that needs a login fails with it (a company that signs in by hand, with no valid login). */
+    public ?SigningRequired $needsSigning = null;
+
     private int $asked = 0;
 
     public function __construct(private readonly bool $healthy = true) {}
@@ -58,6 +69,9 @@ final class FakeGateway implements KsefGateway
 
     public function submit(Company $company, string $xml): Submission
     {
+        if ($this->needsSigning !== null) {
+            throw $this->needsSigning;
+        }
         $this->submitted[] = $xml;
         if ($this->refuse !== null) {
             throw $this->refuse;
@@ -71,6 +85,9 @@ final class FakeGateway implements KsefGateway
 
     public function status(Company $company, Submission $submission): SubmissionStatus
     {
+        if ($this->needsSigning !== null) {
+            throw $this->needsSigning;
+        }
         if ($this->statusFails !== null) {
             throw $this->statusFails;
         }
@@ -95,5 +112,18 @@ final class FakeGateway implements KsefGateway
         }
 
         return array_shift($this->purchaseBatches) ?? new PurchaseBatch([], $from);
+    }
+
+    public function signingRequest(Company $company): SigningRequest
+    {
+        return new SigningRequest('<AuthTokenRequest>to sign</AuthTokenRequest>', new \DateTimeImmutable('+10 minutes'));
+    }
+
+    public function completeSigning(Company $company, string $signedXml): void
+    {
+        if ($this->refuseSigning !== null) {
+            throw $this->refuseSigning;
+        }
+        $this->signed[] = $signedXml;
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\AuthMethod;
 use App\Enums\InvoiceStatus;
 use App\Http\Controllers\Concerns\ScopedToCompany;
 use App\Http\Requests\InvoiceRequest;
@@ -110,8 +109,8 @@ class InvoiceController extends Controller
                     'can_check' => $invoice->status === InvoiceStatus::Sending && $invoice->submission() !== null,
                 ],
             ],
-            'canSend' => $invoice->status === InvoiceStatus::Issued && $invoice->company->auth_method !== AuthMethod::Manual,
-            'manualLogin' => $invoice->company->auth_method === AuthMethod::Manual,
+            'canSend' => $invoice->status === InvoiceStatus::Issued && ! $invoice->company->needsSigningIn(),
+            'needsSigning' => $invoice->company->needsSigningIn(),
             'totals' => Totals::of($lines, $invoice->currency),
         ]);
     }
@@ -134,8 +133,8 @@ class InvoiceController extends Controller
     {
         $this->authorizeOwnership($invoice);
 
-        if ($invoice->company->auth_method === AuthMethod::Manual) {
-            return back()->withErrors(['send' => __('This company signs in to KSeF by hand, which is not available for sending yet. Use a token or a certificate in the company settings.')]);
+        if ($invoice->company->needsSigningIn()) {
+            return back()->withErrors(['send' => __('Sign in to KSeF first: the signed login has expired or was never made.')]);
         }
 
         // One atomic step: two clicks, or two tabs, hand the invoice over once.

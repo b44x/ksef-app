@@ -19,6 +19,9 @@ final class SaveCompany
     {
         $company = Company::query()->first() ?? new Company;
         $method = AuthMethod::from($data['auth_method']);
+        $environment = KsefEnvironment::from($data['environment']);
+        // A login belongs to one environment, one NIP and one way of signing in: change any and the old one is of no use.
+        $loginChanged = $company->exists && ($company->auth_method !== $method || $company->environment !== $environment || $company->nip !== $data['nip']);
 
         $company->fill([
             'name' => $data['name'],
@@ -26,10 +29,14 @@ final class SaveCompany
             'address_line1' => $data['address_line1'],
             'address_line2' => $data['address_line2'] ?? null,
             'email' => $data['email'] ?? null,
-            'environment' => KsefEnvironment::from($data['environment']),
+            'environment' => $environment,
             'auth_method' => $method,
             'credentials' => $this->credentials($company, $method, $data),
         ])->save();
+
+        if ($loginChanged) {
+            $company->tokens()->delete();
+        }
 
         return $company;
     }

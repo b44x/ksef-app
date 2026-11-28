@@ -24,8 +24,9 @@ The totals next to the lines are computed by the SDK as you type, never in the b
 
 ## What it will do
 
-- **Connect** a company to KSeF with a token, a certificate or a signature made outside the app (trusted profile),
-  and check the connection before anything is sent.
+- **Connect** a company to KSeF with a token, a certificate or a signature made outside the app (trusted profile: the
+  app prepares the login document, you sign it, the app keeps the login for as long as KSeF allows), and check the
+  connection before anything is sent.
 - **Issue** invoices (VAT, corrections, advance and settlement invoices), with contractors, products and numbering
   series; send them, follow their status, keep the UPO and print the QR code.
 - **Receive** purchase invoices by synchronising from KSeF, browse and search them, download XML and PDF.
