@@ -1,5 +1,5 @@
 import { router, useForm, usePage } from '@inertiajs/react';
-import { Check, WifiOff } from 'lucide-react';
+import { Check, Download, WifiOff } from 'lucide-react';
 import { Button } from '../Components/Button';
 import ConnectionReport from '../Components/ConnectionReport';
 import { Field, Input, Select, Textarea } from '../Components/Form';
@@ -265,6 +265,29 @@ export default function Company({
             {company && defaults && <DefaultsCard defaults={defaults} paymentMethods={paymentMethods} />}
 
             {company && notifications && <NotificationsCard notifications={notifications} />}
+
+            {company && (
+                <Card
+                    title={t('Backup')}
+                    description={t('Everything the application holds, in one file: invoices, contractors, settings.')}
+                    className="mt-6"
+                    action={
+                        <a href="/backup">
+                            <Button variant="secondary" size="sm">
+                                <Download className="size-4" />
+                                {t('Download a backup')}
+                            </Button>
+                        </a>
+                    }
+                >
+                    {pageErrors.backup && <Alert tone="warning">{pageErrors.backup}</Alert>}
+                    <p className="text-sm text-muted">
+                        {t(
+                            'The saved KSeF logins in it are encrypted with the application key (APP_KEY). Keep that key safe as well: without it the logins in a backup cannot be read.',
+                        )}
+                    </p>
+                </Card>
+            )}
 
             {report && (
                 <Card title={t('Connection check')} className="mt-6">

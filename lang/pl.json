@@ -562,5 +562,10 @@
     "No taxpayer with this NIP was found in the register.": "W rejestrze nie ma podatnika o tym NIP.",
     "VAT status": "Status VAT",
     "Found in the register.": "Znaleziono w rejestrze.",
-    "Fetch": "Pobierz"
+    "Fetch": "Pobierz",
+    "Backups from here need the SQLite database. Use your database's own dump tool (pg_dump, mysqldump).": "Kopie zapasowe stąd działają tylko z bazą SQLite. Użyj narzędzia do zrzutu swojej bazy (pg_dump, mysqldump).",
+    "Backup": "Kopia zapasowa",
+    "Everything the application holds, in one file: invoices, contractors, settings.": "Wszystko, co przechowuje aplikacja, w jednym pliku: faktury, kontrahenci, ustawienia.",
+    "Download a backup": "Pobierz kopię zapasową",
+    "The saved KSeF logins in it are encrypted with the application key (APP_KEY). Keep that key safe as well: without it the logins in a backup cannot be read.": "Zapisane logowania do KSeF są w niej zaszyfrowane kluczem aplikacji (APP_KEY). Zachowaj ten klucz w bezpiecznym miejscu: bez niego logowań z kopii nie da się odczytać."
 }

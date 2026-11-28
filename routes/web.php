@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ConnectionCheckController;
 use App\Http\Controllers\ContractorController;
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/recurring/{recurring}', [RecurringController::class, 'update'])->name('recurring.update');
     Route::post('/recurring/{recurring}/run', [RecurringController::class, 'run'])->name('recurring.run');
     Route::delete('/recurring/{recurring}', [RecurringController::class, 'destroy'])->name('recurring.destroy');
+    Route::get('/backup', [BackupController::class, 'download'])->name('backup.download');
     Route::get('/reports', [ReportController::class, 'show'])->name('reports.show');
     Route::get('/reports/sales.csv', [ReportController::class, 'register'])->name('reports.register');
     Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
