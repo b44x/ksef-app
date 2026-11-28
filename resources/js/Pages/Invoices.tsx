@@ -27,6 +27,7 @@ interface Row {
     outstanding: string | null;
     due_date: string | null;
     overdue: boolean;
+    is_correction: boolean;
 }
 
 type Filter = 'all' | 'draft' | 'unpaid' | 'overdue' | 'paid' | 'problems';
@@ -152,6 +153,9 @@ export default function Invoices({ invoices }: { invoices: Row[] }) {
                                         >
                                             {i.number ?? t('Draft')}
                                         </a>
+                                        {i.is_correction && (
+                                            <span className="ml-2 text-xs text-muted">{t('correction')}</span>
+                                        )}
                                     </td>
                                     <td className="tabular-nums text-muted">{i.issue_date}</td>
                                     <td>{i.contractor}</td>

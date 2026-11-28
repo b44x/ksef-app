@@ -526,5 +526,19 @@
     "Otherwise a draft waits for you to look it over. Sending to KSeF is always your decision.": "W przeciwnym razie szkic czeka na Twoje przejrzenie. Wysyłka do KSeF zawsze należy do Ciebie.",
     "Stop repeating this invoice? The invoices already made stay.": "Przestać powtarzać tę fakturę? Wystawione już faktury zostają.",
     "The invoice will be repeated.": "Faktura będzie się powtarzać.",
-    "The invoice was made.": "Faktura została wystawiona."
+    "The invoice was made.": "Faktura została wystawiona.",
+    "Give the reason for the correction.": "Podaj przyczynę korekty.",
+    "The corrected invoice must be accepted by KSeF first.": "Korygowana faktura musi być najpierw przyjęta przez KSeF.",
+    "Before the correction": "Przed korektą",
+    "After the correction": "Po korekcie",
+    "Corrects invoice :number of :date": "Dotyczy faktury :number z dnia :date",
+    "Issue a correction": "Wystaw korektę",
+    "Correction of invoice :number of :date": "Korekta faktury :number z dnia :date",
+    "Change the lines to how they should be. The totals below are the difference to the corrected invoice.": "Zmień pozycje tak, jak mają wyglądać. Sumy poniżej to różnica względem korygowanej faktury.",
+    "Reason for the correction": "Przyczyna korekty",
+    "The invoice as it was (before the correction)": "Faktura taka, jaka była (przed korektą)",
+    "Open the corrected invoice": "Otwórz korygowaną fakturę",
+    "Reason": "Przyczyna",
+    "Corrections": "Korekty",
+    "correction": "korekta"
 }

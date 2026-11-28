@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::post('/invoices/{invoice}/payments/settle', [PaymentController::class, 'settle'])->name('payments.settle');
     Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+    Route::post('/invoices/{invoice}/correct', [InvoiceController::class, 'correct'])->name('invoices.correct');
     Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::get('/invoices/{invoice}/xml', [InvoiceController::class, 'xml'])->name('invoices.xml');
     Route::resource('invoices', InvoiceController::class);

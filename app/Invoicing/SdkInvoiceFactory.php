@@ -7,6 +7,9 @@ use App\Models\InvoiceLine;
 use B4x\Ksef\Invoice\Address;
 use B4x\Ksef\Invoice\Buyer;
 use B4x\Ksef\Invoice\BuyerIdentifier;
+use B4x\Ksef\Invoice\CorrectedInvoice;
+use B4x\Ksef\Invoice\Correction;
+use B4x\Ksef\Invoice\CorrectionType;
 use B4x\Ksef\Invoice\Invoice as SdkInvoice;
 use B4x\Ksef\Invoice\InvoiceLine as SdkLine;
 use B4x\Ksef\Invoice\Payment;
@@ -56,6 +59,19 @@ final class SdkInvoiceFactory
                 $invoice->payment_method !== null ? PaymentMethod::from($invoice->payment_method) : PaymentMethod::BankTransfer,
                 $invoice->bank_account !== null && $invoice->bank_account !== '' ? [$invoice->bank_account] : [],
             ));
+        }
+
+        if ($invoice->isCorrection()) {
+            $original = $invoice->corrected;
+            $builder->correction(new Correction(
+                [new CorrectedInvoice(DateTimeImmutable::createFromInterface($original->issue_date), (string) $original->number, $original->ksef_number)],
+                CorrectionType::from($invoice->correction_type),
+                $invoice->correction_reason,
+            ));
+            // The corrected invoice as it stood, then as it should be: the totals are the difference.
+            foreach ($invoice->stateBefore() as $line) {
+                $builder->addLine($this->line($line, $invoice->currency)->asBefore());
+            }
         }
 
         foreach ($invoice->lines as $line) {

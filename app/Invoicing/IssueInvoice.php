@@ -57,12 +57,11 @@ final class IssueInvoice
             try {
                 $sdk = $this->factory->make($invoice, $number);
                 $issued = $offline?->usesQr() === true ? $this->offline($invoice->company, $sdk) : $this->online($sdk);
+                $totals = Totals::forInvoice($sdk);
             } catch (ValidationException $e) {
                 // Rolls the number back with everything else.
                 throw new InvoiceNotReady($e->violations !== [] ? $e->violations : [$e->getMessage()]);
             }
-
-            $totals = Totals::of($invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all(), $invoice->currency);
 
             $invoice->forceFill([
                 'net_total' => $totals['net'],

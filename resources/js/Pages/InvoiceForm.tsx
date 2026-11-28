@@ -24,6 +24,14 @@ interface Props {
         bank_account: string;
         notes: string;
         invoice_template_id: string;
+        correction: {
+            of_id: number;
+            of_number: string;
+            of_date: string;
+            reason: string;
+            type: string;
+            before: InvoiceLineForm[];
+        } | null;
         lines: InvoiceLineForm[];
         problems: string[];
         preview_number: string;
@@ -83,9 +91,12 @@ export default function InvoiceForm({
         bank_account: invoice?.bank_account ?? '',
         notes: invoice?.notes ?? '',
         invoice_template_id: invoice?.invoice_template_id ?? '',
+        correction_reason: invoice?.correction?.reason ?? '',
+        correction_type: invoice?.correction?.type ?? '1',
         lines: invoice?.lines ?? [{ ...blankLine }],
     });
-    const totals = useTotals(form.data.lines);
+    const totals = useTotals(form.data.lines, invoice?.correction ? invoice.id : undefined);
+    const correction = invoice?.correction ?? null;
     const errors = form.errors as Record<string, string | undefined>;
     const buyer = contractors.find((c) => c.id === form.data.contractor_id);
     const missingCatalog = contractors.length === 0 || series.length === 0;
@@ -212,6 +223,43 @@ export default function InvoiceForm({
                 </div>
             )}
 
+            {correction && (
+                <div className="mb-6 space-y-4">
+                    <Alert tone="info">
+                        <div className="font-medium">
+                            {t('Correction of invoice :number of :date', {
+                                number: correction.of_number,
+                                date: correction.of_date,
+                            })}
+                        </div>
+                        <div className="text-sm">
+                            {t(
+                                'Change the lines to how they should be. The totals below are the difference to the corrected invoice.',
+                            )}
+                        </div>
+                    </Alert>
+                    <Field label={t('Reason for the correction')} error={errors.correction_reason}>
+                        <Input
+                            value={form.data.correction_reason}
+                            maxLength={500}
+                            onChange={(e) => form.setData('correction_reason', e.target.value)}
+                        />
+                    </Field>
+                    <details className="rounded-lg border border-border bg-surface-muted px-4 py-3 text-sm">
+                        <summary className="cursor-pointer font-medium">
+                            {t('The invoice as it was (before the correction)')}
+                        </summary>
+                        <ul className="mt-2 space-y-1 text-muted">
+                            {correction.before.map((l, i) => (
+                                <li key={i}>
+                                    {l.name}: {l.quantity} {l.unit} × {money(l.unit_net_price)} · {l.vat_rate}%
+                                </li>
+                            ))}
+                        </ul>
+                    </details>
+                </div>
+            )}
+
             <form id="invoice-form" onSubmit={submit}>
                 <div role="tablist" aria-label={t('Document type')} className="flex gap-1 border-b border-border">
                     {kinds.map((kind) => (
@@ -289,6 +337,7 @@ export default function InvoiceForm({
                             </div>
                             <Select
                                 aria-label={t('Buyer')}
+                                disabled={correction !== null}
                                 value={form.data.contractor_id}
                                 onChange={(e) => form.setData('contractor_id', Number(e.target.value) || '')}
                             >

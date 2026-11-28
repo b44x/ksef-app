@@ -25,6 +25,14 @@ final class InvoiceCheck
         if ($invoice->lines->isEmpty()) {
             $problems[] = __('Add at least one line.');
         }
+        if ($invoice->isCorrection()) {
+            if (trim((string) $invoice->correction_reason) === '') {
+                $problems[] = __('Give the reason for the correction.');
+            }
+            if (! $invoice->corrected?->canBeCorrected()) {
+                $problems[] = __('The corrected invoice must be accepted by KSeF first.');
+            }
+        }
         if ($problems !== []) {
             return $problems;
         }

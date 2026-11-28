@@ -81,7 +81,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.edit', $invoice);
         }
 
-        $invoice->load(['lines', 'series']);
+        $invoice->load(['lines', 'series', 'corrections', 'corrected']);
         $lines = $invoice->lines->map(fn ($l): array => [
             'name' => $l->name,
             'unit' => $l->unit ?? '',
@@ -89,6 +89,10 @@ class InvoiceController extends Controller
             'unit_net_price' => SdkInvoiceFactory::trim($l->unit_net_price),
             'vat_rate' => $l->vat_rate,
         ])->all();
+
+        $before = $invoice->isCorrection()
+            ? $invoice->stateBefore()->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all()
+            : [];
 
         return Inertia::render('InvoiceShow', [
             'invoice' => [
@@ -128,6 +132,11 @@ class InvoiceController extends Controller
                 'deadline' => $invoice->offline_deadline?->toIso8601String(),
                 'overdue' => $invoice->offline_deadline !== null && $invoice->offline_deadline->isPast() && $invoice->status === InvoiceStatus::Issued,
             ],
+            'correction' => [
+                'can_correct' => $invoice->canBeCorrected(),
+                'of' => $invoice->isCorrection() ? ['id' => $invoice->corrected->id, 'number' => $invoice->corrected->number, 'issue_date' => $invoice->corrected->issue_date->toDateString(), 'reason' => $invoice->correction_reason, 'before' => $invoice->stateBefore()->map(fn ($l): array => ['name' => $l->name, 'unit' => $l->unit ?? '', 'quantity' => SdkInvoiceFactory::trim($l->quantity), 'unit_net_price' => SdkInvoiceFactory::trim($l->unit_net_price), 'vat_rate' => $l->vat_rate])->values()] : null,
+                'list' => $invoice->corrections->map(fn (Invoice $c): array => ['id' => $c->id, 'number' => $c->number, 'status_label' => $c->status->label(), 'status_tone' => $c->status->tone(), 'gross' => $c->gross_total])->all(),
+            ],
             'payment' => [
                 'status' => $invoice->paymentStatus()->value,
                 'label' => $invoice->paymentStatus()->label(),
@@ -142,7 +151,7 @@ class InvoiceController extends Controller
             'qr' => app(InvoiceQr::class)->for($invoice->loadMissing('company')),
             'canSend' => $invoice->status === InvoiceStatus::Issued && ! $invoice->company->needsSigningIn(),
             'needsSigning' => $invoice->company->needsSigningIn(),
-            'totals' => Totals::of($lines, $invoice->currency),
+            'totals' => Totals::of($lines, $invoice->currency, $before),
         ]);
     }
 
@@ -301,6 +310,40 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.edit', $copy)->with('status', __('A new draft was made from :number.', ['number' => (string) $invoice->number]));
     }
 
+    /** A draft correction of an accepted invoice, starting from the lines as they stand. An unfinished one is continued, not doubled. */
+    public function correct(Invoice $invoice): RedirectResponse
+    {
+        $this->authorizeOwnership($invoice);
+        abort_unless($invoice->canBeCorrected(), 403);
+
+        $draft = $invoice->corrections()->where('status', InvoiceStatus::Draft)->first();
+        if ($draft === null) {
+            $draft = DB::transaction(function () use ($invoice): Invoice {
+                $draft = new Invoice([
+                    'contractor_id' => $invoice->contractor_id,
+                    'numbering_series_id' => $invoice->numbering_series_id,
+                    'issue_date' => now()->toDateString(),
+                    'sale_date' => $invoice->sale_date?->toDateString(),
+                    'payment_method' => $invoice->payment_method,
+                    'bank_account' => $invoice->bank_account,
+                    'invoice_template_id' => $invoice->invoice_template_id,
+                    'correction_type' => 1,
+                ]);
+                $draft->company_id = $invoice->company_id;
+                $draft->corrects_invoice_id = $invoice->id;
+                $draft->currency = $invoice->currency;
+                $draft->save();
+                foreach ($invoice->currentLines() as $line) {
+                    $draft->lines()->create($line->only(['position', 'name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']));
+                }
+
+                return $draft;
+            });
+        }
+
+        return redirect()->route('invoices.edit', $draft);
+    }
+
     public function pdf(Request $request, Invoice $invoice, InvoiceView $view, InvoicePdf $pdf): HttpResponse
     {
         $this->authorizeOwnership($invoice);
@@ -350,7 +393,13 @@ class InvoiceController extends Controller
         abort_unless($invoice->isDraft(), 403);
 
         DB::transaction(function () use ($request, $invoice): void {
-            $invoice->update($request->safe()->except('lines'));
+            $data = $request->safe()->except('lines');
+            if ($invoice->isCorrection()) {
+                // A correction is about the same sale: the buyer and the series do not change.
+                $data['contractor_id'] = $invoice->contractor_id;
+                $data['correction_type'] = $data['correction_type'] ?? $invoice->correction_type;
+            }
+            $invoice->update($data);
             $invoice->lines()->delete();
             $this->saveLines($invoice, $request->validated('lines'));
         });
@@ -372,11 +421,19 @@ class InvoiceController extends Controller
     {
         $data = $request->validate([
             'currency' => ['nullable', 'string', 'size:3'],
+            'invoice_id' => ['nullable', 'integer'],
             'lines' => ['present', 'array', 'max:1000'],
             ...InvoiceRequest::lineRules('lines.*.'),
         ]);
 
-        return response()->json(Totals::of($data['lines'], $data['currency'] ?? 'PLN'));
+        // A correction's totals are the difference to the invoice it corrects.
+        $before = [];
+        $draft = isset($data['invoice_id']) ? Invoice::query()->where('company_id', Company::current()?->id)->find($data['invoice_id']) : null;
+        if ($draft !== null && $draft->isCorrection()) {
+            $before = $draft->stateBefore()->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all();
+        }
+
+        return response()->json(Totals::of($data['lines'], $data['currency'] ?? 'PLN', $before));
     }
 
     private function form(Company $company, ?Invoice $invoice): Response
@@ -401,6 +458,20 @@ class InvoiceController extends Controller
                     'unit_net_price' => SdkInvoiceFactory::trim($l->unit_net_price),
                     'vat_rate' => $l->vat_rate,
                 ]),
+                'correction' => $invoice->isCorrection() ? [
+                    'of_id' => $invoice->corrected->id,
+                    'of_number' => $invoice->corrected->number,
+                    'of_date' => $invoice->corrected->issue_date->toDateString(),
+                    'reason' => $invoice->correction_reason ?? '',
+                    'type' => (string) $invoice->correction_type,
+                    'before' => $invoice->stateBefore()->map(fn ($l): array => [
+                        'name' => $l->name,
+                        'unit' => $l->unit ?? '',
+                        'quantity' => SdkInvoiceFactory::trim($l->quantity),
+                        'unit_net_price' => SdkInvoiceFactory::trim($l->unit_net_price),
+                        'vat_rate' => $l->vat_rate,
+                    ])->values(),
+                ] : null,
                 'problems' => app(InvoiceCheck::class)->problems($invoice),
                 'preview_number' => $invoice->series->preview($invoice->issue_date),
             ],

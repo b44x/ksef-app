@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Ksef\Submission;
 use B4x\Ksef\Support\Decimal;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,6 +21,9 @@ use Illuminate\Support\Carbon;
  * @property int $numbering_series_id
  * @property int|null $invoice_template_id
  * @property int|null $recurring_invoice_id
+ * @property int|null $corrects_invoice_id
+ * @property string|null $correction_reason
+ * @property int $correction_type
  * @property InvoiceStatus $status
  * @property string|null $number
  * @property Carbon $issue_date
@@ -53,7 +57,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property Carbon|null $accepted_at
  */
-#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id'])]
+#[Fillable(['contractor_id', 'numbering_series_id', 'issue_date', 'sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type'])]
 class Invoice extends Model
 {
     /** A new invoice is a draft, whether or not it has been read back from the database yet. */
@@ -116,6 +120,59 @@ class Invoice extends Model
     }
 
     /**
+     * @return BelongsTo<Invoice, $this>
+     */
+    public function corrected(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'corrects_invoice_id');
+    }
+
+    /**
+     * @return HasMany<Invoice, $this>
+     */
+    public function corrections(): HasMany
+    {
+        return $this->hasMany(self::class, 'corrects_invoice_id')->orderBy('id');
+    }
+
+    public function isCorrection(): bool
+    {
+        return $this->corrects_invoice_id !== null;
+    }
+
+    /** Only an invoice KSeF accepted can be corrected (a correction is sent after the original has its number), and a correction is not corrected itself: the original is. */
+    public function canBeCorrected(): bool
+    {
+        return $this->status === InvoiceStatus::Accepted && $this->ksef_number !== null && ! $this->isCorrection();
+    }
+
+    /**
+     * What the invoice says after the corrections issued so far: the lines of the latest one that stands (not a draft, not
+     * a rejected one), else its own lines. This is the "before" of the next correction.
+     *
+     * @return Collection<int, InvoiceLine>
+     */
+    public function currentLines(?int $before = null): Collection
+    {
+        $latest = $this->corrections()
+            ->whereNotIn('status', [InvoiceStatus::Draft, InvoiceStatus::Rejected])
+            ->when($before !== null, fn ($q) => $q->where('id', '<', $before))
+            ->with('lines')->get()->last();
+
+        return $latest !== null ? $latest->lines : $this->lines;
+    }
+
+    /**
+     * The lines a correction starts from: how the corrected invoice stood just before this one.
+     *
+     * @return Collection<int, InvoiceLine>
+     */
+    public function stateBefore(): Collection
+    {
+        return $this->corrected->currentLines($this->id);
+    }
+
+    /**
      * @return HasMany<Payment, $this>
      */
     public function payments(): HasMany
@@ -145,6 +202,9 @@ class Invoice extends Model
     public function paymentStatus(): PaymentStatus
     {
         $paid = $this->paidAmount();
+        if ($this->gross_total !== null && ! Decimal::of($this->gross_total)->isPositive()) {
+            return PaymentStatus::Paid; // a credit or a zero correction: nothing is due
+        }
         if ($this->gross_total === null || $paid->isZero()) {
             return PaymentStatus::Unpaid;
         }

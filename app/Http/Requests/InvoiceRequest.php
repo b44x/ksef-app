@@ -31,6 +31,8 @@ class InvoiceRequest extends FormRequest
             'payment_method' => ['nullable', Rule::in(array_map(static fn (PaymentMethod $m): int => $m->value, PaymentMethod::cases()))],
             'bank_account' => ['nullable', 'string', 'min:10', 'max:34'],
             'notes' => ['nullable', 'string', 'max:3500'],
+            'correction_reason' => [Rule::requiredIf(fn () => $this->route('invoice')?->isCorrection() === true), 'nullable', 'string', 'max:500'],
+            'correction_type' => ['nullable', Rule::in([1, 2, 3])],
             'invoice_template_id' => ['nullable', Rule::exists('invoice_templates', 'id')->where('company_id', $company)],
             'lines' => ['required', 'array', 'min:1', 'max:1000'],
             ...self::lineRules('lines.*.'),
@@ -58,7 +60,7 @@ class InvoiceRequest extends FormRequest
         // Empty form fields arrive as empty strings; for dates and the optional text they mean "not given".
         $this->merge(array_map(
             static fn (mixed $v): mixed => $v === '' ? null : $v,
-            $this->only(['sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id']),
+            $this->only(['sale_date', 'due_date', 'payment_method', 'bank_account', 'notes', 'invoice_template_id', 'correction_reason', 'correction_type']),
         ));
     }
 }

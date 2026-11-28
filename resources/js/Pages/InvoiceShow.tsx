@@ -5,6 +5,7 @@ import {
     Copy,
     CopyPlus,
     Download,
+    FilePenLine,
     Repeat,
     Loader2,
     RefreshCw,
@@ -52,6 +53,17 @@ interface Props {
         };
     };
     totals: TotalsPreview;
+    correction: {
+        can_correct: boolean;
+        of: { id: number; number: string; issue_date: string; reason: string | null } | null;
+        list: {
+            id: number;
+            number: string | null;
+            status_label: string;
+            status_tone: 'warning' | 'primary' | 'success' | 'danger';
+            gross: string | null;
+        }[];
+    };
     payment: PaymentInfo;
     today: string;
     canSend: boolean;
@@ -123,7 +135,17 @@ function Delivery({ invoice }: { invoice: Props['invoice'] }) {
     );
 }
 
-export default function InvoiceShow({ invoice, totals, payment, today, canSend, needsSigning, offline, qr }: Props) {
+export default function InvoiceShow({
+    invoice,
+    totals,
+    correction,
+    payment,
+    today,
+    canSend,
+    needsSigning,
+    offline,
+    qr,
+}: Props) {
     const t = useT();
     const money = useMoney();
     const { errors, locale } = usePage<SharedProps>().props as SharedProps & { errors: Record<string, string> };
@@ -157,10 +179,18 @@ export default function InvoiceShow({ invoice, totals, payment, today, canSend, 
                             {t('Back to the list')}
                         </ButtonLink>
                         <PdfLinks href={`/invoices/${invoice.id}/pdf`} />
-                        <Button variant="secondary" onClick={() => setRepeating(true)}>
-                            <Repeat className="size-4" />
-                            {t('Repeat')}
-                        </Button>
+                        {correction.can_correct && (
+                            <Button variant="secondary" onClick={() => router.post(`/invoices/${invoice.id}/correct`)}>
+                                <FilePenLine className="size-4" />
+                                {t('Issue a correction')}
+                            </Button>
+                        )}
+                        {!correction.of && (
+                            <Button variant="secondary" onClick={() => setRepeating(true)}>
+                                <Repeat className="size-4" />
+                                {t('Repeat')}
+                            </Button>
+                        )}
                         <a href={`/invoices/${invoice.id}/xml`} download>
                             <Button variant="secondary">
                                 <Download className="size-4" />
@@ -410,6 +440,46 @@ export default function InvoiceShow({ invoice, totals, payment, today, canSend, 
                 open={repeating}
                 onClose={() => setRepeating(false)}
             />
+
+            {correction.of && (
+                <div className="mt-6">
+                    <Alert tone="info">
+                        {t('Correction of invoice :number of :date', {
+                            number: correction.of.number,
+                            date: correction.of.issue_date,
+                        })}
+                        {' · '}
+                        <a href={`/invoices/${correction.of.id}`} className="font-medium underline">
+                            {t('Open the corrected invoice')}
+                        </a>
+                        {correction.of.reason && (
+                            <div className="mt-1 text-sm">
+                                {t('Reason')}: {correction.of.reason}
+                            </div>
+                        )}
+                    </Alert>
+                </div>
+            )}
+
+            {correction.list.length > 0 && (
+                <Card title={t('Corrections')} className="mt-6">
+                    <ul className="divide-y divide-border text-sm">
+                        {correction.list.map((c) => (
+                            <li key={c.id} className="flex items-center justify-between py-2">
+                                <a href={`/invoices/${c.id}`} className="font-medium text-primary hover:underline">
+                                    {c.number ?? t('Draft')}
+                                </a>
+                                <span className="flex items-center gap-3">
+                                    {c.gross && (
+                                        <span className="tabular-nums">{money(c.gross, invoice.currency)}</span>
+                                    )}
+                                    <Badge tone={c.status_tone}>{c.status_label}</Badge>
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            )}
 
             <PaymentsCard invoiceId={invoice.id} currency={invoice.currency} payment={payment} today={today} />
 

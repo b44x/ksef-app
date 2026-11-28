@@ -27,13 +27,36 @@ final class InvoiceView
      */
     public function sales(Invoice $invoice): array
     {
-        $invoice->loadMissing(['lines', 'company', 'series']);
+        $invoice->loadMissing(['lines', 'company', 'series', 'corrected']);
         $parties = $invoice->snapshot ?? ['seller' => [], 'buyer' => []];
         $lineData = $invoice->lines->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all();
-        $totals = Totals::of($lineData, $invoice->currency);
+        // A correction shows the corrected invoice as it stood, then as it is now; its sums are the difference.
+        $beforeData = $invoice->isCorrection() ? $invoice->stateBefore()->map(fn ($l): array => $l->only(['name', 'quantity', 'unit_net_price', 'vat_rate']))->all() : [];
+        $totals = Totals::of($lineData, $invoice->currency, $beforeData);
+        $row = static fn (array $l, string $net, string $state): array => [
+            'name' => $l['name'],
+            'unit' => $l['unit'] ?? '',
+            'quantity' => SdkInvoiceFactory::trim($l['quantity']),
+            'unit_price' => SdkInvoiceFactory::trim($l['unit_net_price']),
+            'price_kind' => 'net',
+            'vat_rate' => $l['vat_rate'],
+            'net' => $net,
+            'state' => $state,
+        ];
+        $lines = [];
+        foreach ($invoice->isCorrection() ? $invoice->stateBefore() : [] as $l) {
+            $lines[] = $row($l->only(['name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']), Totals::of([$l->only(['name', 'quantity', 'unit_net_price', 'vat_rate'])], $invoice->currency)['lines'][0], 'before');
+        }
+        foreach ($invoice->lines as $i => $l) {
+            $lines[] = $row($l->only(['name', 'unit', 'quantity', 'unit_net_price', 'vat_rate']), $totals['lines'][$i], $invoice->isCorrection() ? 'after' : 'current');
+        }
+        foreach ($lines as $n => &$line) {
+            $line = ['n' => $n + 1] + $line;
+        }
+        unset($line);
 
         return [
-            'title' => 'VAT invoice',
+            'title' => $invoice->isCorrection() ? 'Correction invoice' : 'VAT invoice',
             'number' => (string) $invoice->number,
             'issue_date' => $invoice->issue_date->toDateString(),
             'sale_date' => $invoice->sale_date?->toDateString(),
@@ -41,16 +64,8 @@ final class InvoiceView
             'currency' => $invoice->currency,
             'seller' => self::party($parties['seller']),
             'buyer' => self::party($parties['buyer']),
-            'lines' => $invoice->lines->map(fn ($l, int $i): array => [
-                'n' => $i + 1,
-                'name' => $l->name,
-                'unit' => $l->unit ?? '',
-                'quantity' => SdkInvoiceFactory::trim($l->quantity),
-                'unit_price' => SdkInvoiceFactory::trim($l->unit_net_price),
-                'price_kind' => 'net',
-                'vat_rate' => $l->vat_rate,
-                'net' => $totals['lines'][$i],
-            ])->all(),
+            'lines' => $lines,
+            'correction' => $invoice->isCorrection() ? ['of_number' => (string) $invoice->corrected->number, 'of_date' => $invoice->corrected->issue_date->toDateString(), 'reason' => $invoice->correction_reason] : null,
             'summary' => array_map(static fn (array $b): array => [
                 'label' => $b['vat'] !== null ? $b['rate'].'%' : $b['rate'],
                 'net' => $b['net'],

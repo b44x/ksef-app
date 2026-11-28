@@ -83,6 +83,10 @@
 </table>
 @if ($header)</div>@endif
 
+@if (! empty($i['correction']))
+    <div class="box"><b>{{ __('Correction') }}</b>{{ __('Corrects invoice :number of :date', ['number' => $i['correction']['of_number'], 'date' => $i['correction']['of_date']]) }}@if ($i['correction']['reason']) &mdash; {{ $i['correction']['reason'] }}@endif</div>
+@endif
+
 <table class="parties">
     <tr>
         @foreach ([['Seller', $i['seller'], 'seller_email'], ['Buyer', $i['buyer'], 'buyer_email']] as [$label, $party, $mail])
@@ -110,7 +114,12 @@
         </tr>
     </thead>
     <tbody>
+    @php $group = null; @endphp
     @foreach ($i['lines'] as $line)
+        @if (($line['state'] ?? 'current') !== 'current' && ($line['state'] ?? null) !== $group)
+            @php $group = $line['state']; @endphp
+            <tr><td colspan="7" class="l" style="background: {{ $soft }}; font-weight: bold; padding: 4px">{{ $group === 'before' ? __('Before the correction') : __('After the correction') }}</td></tr>
+        @endif
         <tr class="{{ $loop->odd ? 'odd' : 'even' }}">
             <td class="l">{{ $line['n'] }}</td>
             <td class="l">{{ $line['name'] }}</td>
