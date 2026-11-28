@@ -35,7 +35,7 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [x] E-mail summary (offline deadlines, new purchases, rejections; MAIL_* in the environment)
 - [ ] UPO as PDF
 - [x] Polish and English interface (more languages: add a JSON file)
-- [ ] Import contractors and products from CSV
+- [x] Import contractors and products from CSV (Polish or English headers, UTF-8 or Windows-1250)
 
 ## M6: Desktop
 - [x] CI builds unsigned installers for Windows and macOS (see docs/DESKTOP.md)

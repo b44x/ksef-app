@@ -1,8 +1,9 @@
 import { router, useForm } from '@inertiajs/react';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../Components/Button';
 import { Dialog } from '../Components/Dialog';
+import { ImportDialog } from '../Components/ImportDialog';
 import { Field, Input, Select } from '../Components/Form';
 import { RowActions } from '../Components/RowActions';
 import { Badge, Card, EmptyState, PageHeader, Table } from '../Components/Ui';
@@ -24,6 +25,7 @@ export default function Products({ products, vatRates }: { products: Product[]; 
     const t = useT();
     const money = useMoney();
     const [open, setOpen] = useState(false);
+    const [importing, setImporting] = useState(false);
     const [editing, setEditing] = useState<number | null>(null);
     const form = useForm(empty);
 
@@ -62,10 +64,16 @@ export default function Products({ products, vatRates }: { products: Product[]; 
                 title={t('Products and services')}
                 description={t('What you sell, with the usual price and VAT rate.')}
                 actions={
-                    <Button onClick={add}>
-                        <Plus className="size-4" />
-                        {t('Add a product or service')}
-                    </Button>
+                    <>
+                        <Button variant="secondary" onClick={() => setImporting(true)}>
+                            <Upload className="size-4" />
+                            {t('Import from CSV')}
+                        </Button>
+                        <Button onClick={add}>
+                            <Plus className="size-4" />
+                            {t('Add a product or service')}
+                        </Button>
+                    </>
                 }
             />
 
@@ -143,6 +151,13 @@ export default function Products({ products, vatRates }: { products: Product[]; 
                     </div>
                 </form>
             </Dialog>
+            <ImportDialog
+                open={importing}
+                onClose={() => setImporting(false)}
+                title={t('Import products and services')}
+                url="/products/import"
+                columns="name, unit, net price, VAT rate"
+            />
         </AppLayout>
     );
 }

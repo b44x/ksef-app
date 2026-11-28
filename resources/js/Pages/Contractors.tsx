@@ -1,8 +1,9 @@
 import { router, useForm } from '@inertiajs/react';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Upload, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../Components/Button';
 import { Dialog } from '../Components/Dialog';
+import { ImportDialog } from '../Components/ImportDialog';
 import { Field, Input } from '../Components/Form';
 import { RowActions } from '../Components/RowActions';
 import { Card, EmptyState, PageHeader, Table } from '../Components/Ui';
@@ -24,6 +25,7 @@ const empty = { name: '', nip: '', country: 'PL', address_line1: '', address_lin
 export default function Contractors({ contractors }: { contractors: Contractor[] }) {
     const t = useT();
     const [open, setOpen] = useState(false);
+    const [importing, setImporting] = useState(false);
     const [editing, setEditing] = useState<number | null>(null);
     const form = useForm(empty);
 
@@ -69,10 +71,16 @@ export default function Contractors({ contractors }: { contractors: Contractor[]
                 title={t('Contractors')}
                 description={t('The buyers you issue invoices to.')}
                 actions={
-                    <Button onClick={add}>
-                        <Plus className="size-4" />
-                        {t('Add a contractor')}
-                    </Button>
+                    <>
+                        <Button variant="secondary" onClick={() => setImporting(true)}>
+                            <Upload className="size-4" />
+                            {t('Import from CSV')}
+                        </Button>
+                        <Button onClick={add}>
+                            <Plus className="size-4" />
+                            {t('Add a contractor')}
+                        </Button>
+                    </>
                 }
             />
 
@@ -159,6 +167,13 @@ export default function Contractors({ contractors }: { contractors: Contractor[]
                     </div>
                 </form>
             </Dialog>
+            <ImportDialog
+                open={importing}
+                onClose={() => setImporting(false)}
+                title={t('Import contractors')}
+                url="/contractors/import"
+                columns="name, NIP, country, address, address 2, e-mail"
+            />
         </AppLayout>
     );
 }

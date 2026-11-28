@@ -373,5 +373,16 @@
     "Send it to": "Wyślij na adres",
     "Leave empty to send nothing.": "Zostaw puste, aby nic nie wysyłać.",
     "What it may contain": "Co może zawierać",
-    "Send a test message": "Wyślij wiadomość próbną"
+    "Send a test message": "Wyślij wiadomość próbną",
+    "The file is empty.": "Plik jest pusty.",
+    "No known column names were found in the first line.": "W pierwszym wierszu nie ma żadnej znanej nazwy kolumny.",
+    "The file has more than :max rows. Split it.": "Plik ma więcej niż :max wierszy. Podziel go.",
+    "Import from CSV": "Importuj z CSV",
+    "Import contractors": "Import kontrahentów",
+    "Import products and services": "Import towarów i usług",
+    "A CSV file with a header line. Columns: :columns. The delimiter can be ; , or a tab.": "Plik CSV z wierszem nagłówka. Kolumny: :columns. Separatorem może być średnik, przecinek lub tabulator.",
+    "Added: :created. Updated: :updated. Left out: :left.": "Dodano: :created. Zaktualizowano: :updated. Pominięto: :left.",
+    "Line :line": "Wiersz :line",
+    "Import": "Importuj",
+    "The file is not UTF-8. Save it as \"CSV UTF-8\".": "Plik nie jest w UTF-8. Zapisz go jako „CSV UTF-8”."
 }

@@ -102,6 +102,7 @@ class HandleInertiaRequests extends Middleware
             // The result of the last connection check, shown once.
             'report' => fn () => $request->session()->get('report'),
             'status' => fn () => $request->session()->get('status'),
+            'import' => fn () => $request->session()->get('import'),
             'ksefSession' => fn () => self::ksefSession($user),
             'ksefAvailability' => fn () => $user === null ? null : $this->availability(),
             'unreadPurchases' => fn () => $user === null ? 0 : (Company::query()->first()?->receivedInvoices()->whereNull('read_at')->count() ?? 0),

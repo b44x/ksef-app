@@ -18,6 +18,7 @@ export interface SharedProps {
     company: { name: string; nip: string } | null;
     report: Report | null;
     status: string | null;
+    import: { created: number; updated: number; errors: { line: number; message: string }[] } | null;
     unreadPurchases: number;
     ksefAvailability: {
         state: string;

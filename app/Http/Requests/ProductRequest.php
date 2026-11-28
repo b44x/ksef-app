@@ -18,6 +18,16 @@ class ProductRequest extends FormRequest
      */
     public function rules(): array
     {
+        return self::baseRules();
+    }
+
+    /**
+     * Shared with the CSV import, so a file is held to what the form demands.
+     *
+     * @return array<string, mixed>
+     */
+    public static function baseRules(): array
+    {
         return [
             'name' => ['required', 'string', 'max:255'],
             'unit' => ['required', 'string', 'max:20'],

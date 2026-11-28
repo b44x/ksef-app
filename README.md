@@ -35,7 +35,10 @@ The totals next to the lines are computed by the SDK as you type, never in the b
   series; send them, follow their status, keep the UPO and print the QR code.
 - **Receive** purchase invoices by synchronising from KSeF, browse and search them, download XML and PDF.
 - **Stay safe when KSeF is down**: a banner while KSeF is down (production), offline invoices with their two QR codes,
-  the delivery deadline counted in Polish business days, and a reminder until they are delivered.
+  the delivery deadline counted in Polish business days, a total-failure mode without QR codes, and a reminder
+  (in the app and by a daily e-mail) until they are delivered.
+- **Print** any issued or received invoice as a PDF, in Polish or English, with the KSeF QR codes.
+- **Import** contractors and products from a CSV file (the format Excel saves).
 - **Run anywhere**: in a browser (Docker, a server, a NAS) first; as a desktop app for Windows and macOS from the same code.
 
 Designed for one company per installation, with the data model ready for many companies.
@@ -54,7 +57,7 @@ php artisan migrate
 npm run build
 php artisan serve        # http://localhost:8000
 php artisan queue:work   # sends and receives invoices in the background (`composer run dev` starts it for you)
-php artisan schedule:work   # fetches new purchase invoices and checks KSeF's availability (or run `schedule:run` from cron)
+php artisan schedule:work   # fetches new purchase invoices, checks KSeF's availability and sends the daily e-mail (or run `schedule:run` from cron)
 ```
 
 To look around with example data (local use only; the login is `demo@example.test` / `demo-password-123`):

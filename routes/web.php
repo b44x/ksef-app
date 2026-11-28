@@ -4,6 +4,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ConnectionCheckController;
 use App\Http\Controllers\ContractorController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\KsefSignInController;
 use App\Http\Controllers\LocaleController;
@@ -39,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/company/offline-certificate', [OfflineCertificateController::class, 'store'])->name('offline-certificate.store');
     Route::delete('/company/offline-certificate', [OfflineCertificateController::class, 'destroy'])->name('offline-certificate.destroy');
     Route::post('/company/check', [ConnectionCheckController::class, 'store'])->name('company.check');
+    Route::post('/contractors/import', [ImportController::class, 'contractors'])->name('contractors.import');
+    Route::post('/products/import', [ImportController::class, 'products'])->name('products.import');
     Route::get('/contractors', [ContractorController::class, 'index'])->name('contractors.index');
     Route::post('/contractors', [ContractorController::class, 'store'])->name('contractors.store');
     Route::put('/contractors/{contractor}', [ContractorController::class, 'update'])->name('contractors.update');
