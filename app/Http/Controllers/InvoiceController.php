@@ -81,7 +81,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.edit', $invoice);
         }
 
-        $invoice->load(['lines', 'series', 'corrections', 'corrected']);
+        $invoice->load(['lines', 'series', 'corrections', 'corrected', 'contractor', 'emails']);
         $lines = $invoice->lines->map(fn ($l): array => [
             'name' => $l->name,
             'unit' => $l->unit ?? '',
@@ -146,6 +146,13 @@ class InvoiceController extends Controller
                 'paid' => $invoice->paidAmount()->toString(2),
                 'outstanding' => $invoice->outstanding()->toString(2),
                 'items' => $invoice->payments->map(fn ($p): array => ['id' => $p->id, 'amount' => $p->amount, 'paid_on' => $p->paid_on->toDateString(), 'note' => $p->note])->all(),
+            ],
+            'email' => [
+                'can_send' => $invoice->isSale(),
+                'to' => $invoice->contractor->email ?? '',
+                'subject' => __('Invoice :number from :company', ['number' => (string) $invoice->number, 'company' => $invoice->company->name]),
+                'message' => __("Hello,\n\nPlease find invoice :number attached.\n\nBest regards,\n:company", ['number' => (string) $invoice->number, 'company' => $invoice->company->name]),
+                'sent' => $invoice->emails->map(fn ($e): array => ['to' => $e->to, 'at' => $e->created_at->toIso8601String()])->all(),
             ],
             'today' => now()->toDateString(),
             'qr' => app(InvoiceQr::class)->for($invoice->loadMissing('company')),

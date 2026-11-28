@@ -6,6 +6,7 @@ import {
     CopyPlus,
     Download,
     FilePenLine,
+    Mail,
     Repeat,
     Loader2,
     RefreshCw,
@@ -13,6 +14,7 @@ import {
     XCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { type EmailInfo, EmailDialog } from '../Components/EmailDialog';
 import { RecurringDialog } from '../Components/RecurringDialog';
 import { PdfLinks } from '../Components/PdfLinks';
 import { type PaymentInfo, PaymentsCard } from '../Components/PaymentsCard';
@@ -64,6 +66,7 @@ interface Props {
             gross: string | null;
         }[];
     };
+    email: EmailInfo;
     payment: PaymentInfo;
     today: string;
     canSend: boolean;
@@ -139,6 +142,7 @@ export default function InvoiceShow({
     invoice,
     totals,
     correction,
+    email,
     payment,
     today,
     canSend,
@@ -164,6 +168,7 @@ export default function InvoiceShow({
     const send = () => router.post(`/invoices/${invoice.id}/send`);
     const [anchor, setAnchor] = useState('');
     const [repeating, setRepeating] = useState(false);
+    const [emailing, setEmailing] = useState(false);
     const when = (iso: string) =>
         new Date(iso).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-GB', { dateStyle: 'long' });
 
@@ -179,6 +184,12 @@ export default function InvoiceShow({
                             {t('Back to the list')}
                         </ButtonLink>
                         <PdfLinks href={`/invoices/${invoice.id}/pdf`} />
+                        {email.can_send && (
+                            <Button variant="secondary" onClick={() => setEmailing(true)}>
+                                <Mail className="size-4" />
+                                {t('Send by e-mail')}
+                            </Button>
+                        )}
                         {correction.can_correct && (
                             <Button variant="secondary" onClick={() => router.post(`/invoices/${invoice.id}/correct`)}>
                                 <FilePenLine className="size-4" />
@@ -432,6 +443,24 @@ export default function InvoiceShow({
                     </div>
                 </div>
             </div>
+
+            {email.can_send && (
+                <EmailDialog invoiceId={invoice.id} email={email} open={emailing} onClose={() => setEmailing(false)} />
+            )}
+
+            {email.sent.length > 0 && (
+                <div className="mt-6">
+                    <Alert tone="success">
+                        {t('Sent by e-mail')}:{' '}
+                        {email.sent
+                            .map(
+                                (e) =>
+                                    `${e.to} (${new Date(e.at).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-GB')})`,
+                            )
+                            .join(', ')}
+                    </Alert>
+                </div>
+            )}
 
             <RecurringDialog
                 invoiceId={invoice.id}

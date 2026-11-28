@@ -173,6 +173,14 @@ class Invoice extends Model
     }
 
     /**
+     * @return HasMany<InvoiceEmail, $this>
+     */
+    public function emails(): HasMany
+    {
+        return $this->hasMany(InvoiceEmail::class)->orderBy('id');
+    }
+
+    /**
      * @return HasMany<Payment, $this>
      */
     public function payments(): HasMany

@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceDefaultsController;
+use App\Http\Controllers\InvoiceEmailController;
 use App\Http\Controllers\KsefSignInController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
@@ -81,6 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/payments/settle', [PaymentController::class, 'settle'])->name('payments.settle');
     Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
     Route::post('/invoices/{invoice}/correct', [InvoiceController::class, 'correct'])->name('invoices.correct');
+    Route::post('/invoices/{invoice}/email', [InvoiceEmailController::class, 'store'])->name('invoices.email');
     Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::get('/invoices/{invoice}/xml', [InvoiceController::class, 'xml'])->name('invoices.xml');
     Route::resource('invoices', InvoiceController::class);

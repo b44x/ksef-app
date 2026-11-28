@@ -44,6 +44,7 @@ The totals next to the lines are computed by the SDK as you type, never in the b
 - **Print** any issued or received invoice as a PDF, in Polish or English, with the KSeF QR codes; design your own
   templates (layout, colour, font, logo, what is shown) in an editor with a live preview.
 - **Correct** accepted invoices (KOR): the lines before and after, totals as the difference, a PDF that shows both.
+- **E-mail** an invoice to the buyer as a PDF in one click.
 - **Repeat** invoices weekly, monthly, quarterly or yearly, as drafts or issued automatically.
 - **Follow the money**: payments per invoice, paid / partly paid / overdue, receivables ageing.
 - **Report**: sales by month, VAT by rate, top customers, and the sales register as a CSV file for your accountant.

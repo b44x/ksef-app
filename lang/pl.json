@@ -546,5 +546,15 @@
     "Payment term (days)": "Termin płatności (dni)",
     "Leave empty for no due date.": "Zostaw puste, jeśli nie ma terminu płatności.",
     "Not set": "Nie ustawiono",
-    "The defaults were saved.": "Ustawienia domyślne zostały zapisane."
+    "The defaults were saved.": "Ustawienia domyślne zostały zapisane.",
+    "Send by e-mail": "Wyślij e-mailem",
+    "The invoice goes as a PDF. Replies go to your company e-mail. Needs the mail server set in the environment (MAIL_*).": "Faktura idzie jako PDF. Odpowiedzi trafiają na e-mail Twojej firmy. Wymaga ustawienia serwera poczty w środowisku (MAIL_*).",
+    "Subject": "Temat",
+    "Message": "Wiadomość",
+    "Language of the PDF": "Język PDF",
+    "Send": "Wyślij",
+    "Sent by e-mail": "Wysłano e-mailem",
+    "Invoice :number from :company": "Faktura :number od :company",
+    "Hello,\n\nPlease find invoice :number attached.\n\nBest regards,\n:company": "Dzień dobry,\n\nw załączeniu przesyłam fakturę :number.\n\nPozdrawiam,\n:company",
+    "The invoice was sent to :address.": "Faktura została wysłana na adres :address."
 }
