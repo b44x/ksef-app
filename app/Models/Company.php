@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * The company invoices are issued for and received by. Every business record belongs to one; an installation shows a
@@ -22,6 +23,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property KsefEnvironment $environment
  * @property AuthMethod $auth_method
  * @property array<string, string>|null $credentials
+ * @property Carbon|null $purchases_synced_until
+ * @property Carbon|null $purchases_synced_at
+ * @property string|null $purchases_sync_error
  */
 #[Fillable(['name', 'nip', 'address_line1', 'address_line2', 'email', 'environment', 'auth_method', 'credentials'])]
 #[Hidden(['credentials'])]
@@ -36,6 +40,8 @@ class Company extends Model
             'environment' => KsefEnvironment::class,
             'auth_method' => AuthMethod::class,
             'credentials' => 'encrypted:array',
+            'purchases_synced_until' => 'datetime',
+            'purchases_synced_at' => 'datetime',
         ];
     }
 
@@ -83,6 +89,14 @@ class Company extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * @return HasMany<ReceivedInvoice, $this>
+     */
+    public function receivedInvoices(): HasMany
+    {
+        return $this->hasMany(ReceivedInvoice::class);
     }
 
     /** A stored credential value (for example "token", "certificate", "private_key"), or null. */

@@ -30,4 +30,10 @@ interface KsefGateway
 
     /** The official confirmation of receipt (UPO) as XML, or null while it is not available. */
     public function upo(Company $company, Submission $submission): ?string;
+
+    /**
+     * The purchase invoices (the company is the buyer) KSeF stored since a moment. One export at most: when KSeF cuts it
+     * short the batch says where to continue.
+     */
+    public function purchases(Company $company, \DateTimeImmutable $from): PurchaseBatch;
 }

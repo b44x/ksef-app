@@ -6,6 +6,7 @@ use App\Ksef\CheckOutcome;
 use App\Ksef\ConnectionCheck;
 use App\Ksef\ConnectionReport;
 use App\Ksef\KsefGateway;
+use App\Ksef\PurchaseBatch;
 use App\Ksef\Submission;
 use App\Ksef\SubmissionRefused;
 use App\Ksef\SubmissionState;
@@ -33,6 +34,14 @@ final class FakeGateway implements KsefGateway
     public ?\Throwable $statusFails = null;
 
     public ?string $upo = '<UPO>signed by the Ministry</UPO>';
+
+    /** @var list<PurchaseBatch> the batches of purchase invoices to give, one per export */
+    public array $purchaseBatches = [];
+
+    /** @var list<\DateTimeImmutable> where each export was asked to start */
+    public array $purchaseFrom = [];
+
+    public ?\Throwable $purchasesFail = null;
 
     private int $asked = 0;
 
@@ -76,5 +85,15 @@ final class FakeGateway implements KsefGateway
     public function upo(Company $company, Submission $submission): ?string
     {
         return $this->upo;
+    }
+
+    public function purchases(Company $company, \DateTimeImmutable $from): PurchaseBatch
+    {
+        $this->purchaseFrom[] = $from;
+        if ($this->purchasesFail !== null) {
+            throw $this->purchasesFail;
+        }
+
+        return array_shift($this->purchaseBatches) ?? new PurchaseBatch([], $from);
     }
 }

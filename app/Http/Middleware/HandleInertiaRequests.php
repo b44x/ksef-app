@@ -53,6 +53,7 @@ class HandleInertiaRequests extends Middleware
             // The result of the last connection check, shown once.
             'report' => fn () => $request->session()->get('report'),
             'status' => fn () => $request->session()->get('status'),
+            'unreadPurchases' => fn () => $user === null ? 0 : (Company::query()->first()?->receivedInvoices()->whereNull('read_at')->count() ?? 0),
         ];
     }
 }

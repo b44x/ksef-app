@@ -21,8 +21,8 @@ Milestones are small enough to ship one by one. Each ends with something that wo
 - [ ] Invoice view with the QR code; download the XML
 
 ## M3: Receive invoices
-- [ ] Scheduled synchronisation of purchase invoices (incremental export)
-- [ ] List with search and filters; invoice view built on the SDK reader; download XML
+- [x] Synchronisation of purchase invoices: the first one from a date you choose, then every 15 minutes, incremental
+- [x] List with search and filters, "new" markers; invoice page built on the SDK reader; download XML
 
 ## M4: Stay safe
 - [ ] Availability banner; offline invoices with the delivery deadline and a reminder

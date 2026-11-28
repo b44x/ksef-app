@@ -1,5 +1,17 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Building2, FilePlus2, FileText, Hash, LayoutDashboard, LogOut, Menu, Package, Users, X } from 'lucide-react';
+import {
+    Building2,
+    FilePlus2,
+    FileText,
+    Hash,
+    Inbox,
+    LayoutDashboard,
+    LogOut,
+    Menu,
+    Package,
+    Users,
+    X,
+} from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { Footer } from '../Components/Footer';
 import { Toast } from '../Components/Toast';
@@ -10,6 +22,7 @@ const nav = [
     { href: '/invoices/create', label: 'New invoice', icon: FilePlus2, accent: true },
     { href: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { href: '/invoices', label: 'Invoices', icon: FileText },
+    { href: '/purchases', label: 'Purchases', icon: Inbox, badge: true },
     { href: '/contractors', label: 'Contractors', icon: Users },
     { href: '/products', label: 'Products', icon: Package },
     { href: '/series', label: 'Numbering', icon: Hash },
@@ -31,11 +44,12 @@ function Brand() {
 
 function Nav({ onNavigate }: { onNavigate?: () => void }) {
     const t = useT();
+    const { unreadPurchases } = usePage<SharedProps>().props;
     const current = usePage().url;
 
     return (
         <nav className="flex-1 space-y-0.5 px-3 pt-2" aria-label="Main">
-            {nav.map(({ href, label, icon: Icon, exact, accent }) => {
+            {nav.map(({ href, label, icon: Icon, exact, accent, badge }) => {
                 // "New invoice" lives under /invoices, so it must not light up the list entry and the other way round.
                 const active =
                     exact || accent ? current === href : current.startsWith(href) && current !== '/invoices/create';
@@ -53,6 +67,11 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
                     >
                         <Icon className={`size-[18px] ${accent && !active ? 'text-primary' : ''}`} aria-hidden />
                         {t(label)}
+                        {badge && unreadPurchases > 0 && (
+                            <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-text">
+                                {unreadPurchases}
+                            </span>
+                        )}
                     </Link>
                 );
             })}

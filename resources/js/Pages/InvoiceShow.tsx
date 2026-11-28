@@ -2,19 +2,12 @@ import { router, usePage } from '@inertiajs/react';
 import { CheckCircle2, CircleDashed, Copy, CopyPlus, Download, Loader2, RefreshCw, Send, XCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import { Button, ButtonLink } from '../Components/Button';
+import { type Party, PartyBlock } from '../Components/PartyBlock';
 import { Alert, Badge, Card, PageHeader } from '../Components/Ui';
 import { useT } from '../i18n';
 import AppLayout from '../Layouts/AppLayout';
 import { useMoney } from '../lib/format';
 import type { InvoiceLineForm, SharedProps, TotalsPreview } from '../types';
-
-interface Party {
-    name: string;
-    nip: string | null;
-    address: string;
-    email: string | null;
-    country?: string;
-}
 
 interface Props {
     invoice: {
@@ -47,21 +40,6 @@ interface Props {
     totals: TotalsPreview;
     canSend: boolean;
     manualLogin: boolean;
-}
-
-function PartyBlock({ title, party }: { title: string; party: Party }) {
-    return (
-        <div className="p-6">
-            <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">{title}</div>
-            <div className="font-medium">{party.name}</div>
-            {party.nip && <div className="text-sm text-muted">NIP {party.nip}</div>}
-            <div className="text-sm text-muted">
-                {party.address}
-                {party.country ? ` · ${party.country}` : ''}
-            </div>
-            {party.email && <div className="text-sm text-muted">{party.email}</div>}
-        </div>
-    );
 }
 
 /** Where the invoice stands on its way to KSeF: issued, sent, accepted (or rejected). */

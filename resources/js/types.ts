@@ -18,6 +18,7 @@ export interface SharedProps {
     company: { name: string; nip: string } | null;
     report: Report | null;
     status: string | null;
+    unreadPurchases: number;
     credits: { author: string; years: string; url: string; license: string };
     locale: string;
     locales: Record<string, string>;

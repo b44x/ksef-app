@@ -3,15 +3,20 @@
 namespace App\Ksef;
 
 use App\Models\Company;
+use B4x\Ksef\Api\InvoiceDateType;
+use B4x\Ksef\Api\InvoiceSubjectType;
 use B4x\Ksef\Doctor\CheckStatus;
 use B4x\Ksef\Doctor\Doctor;
 use B4x\Ksef\Exception\KsefException;
 use B4x\Ksef\Exception\SubmissionOutcomeUnknownException;
 use B4x\Ksef\Status\InvoiceSubmission;
 use B4x\Ksef\Support\SystemClock;
+use DateTimeImmutable;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use RuntimeException;
 use Throwable;
+use ZipArchive;
 
 /** The {@see KsefGateway} adapter for b44x/ksef-php. */
 class SdkKsefGateway implements KsefGateway
@@ -101,5 +106,63 @@ class SdkKsefGateway implements KsefGateway
     private function sdk(Submission $submission): InvoiceSubmission
     {
         return new InvoiceSubmission($submission->sessionReference, $submission->invoiceReference, $submission->invoiceHash);
+    }
+
+    public function purchases(Company $company, DateTimeImmutable $from): PurchaseBatch
+    {
+        $client = $this->clients->make($company);
+        $to = new DateTimeImmutable;
+        $path = tempnam(sys_get_temp_dir(), 'ksef-export-');
+        if ($path === false) {
+            throw new RuntimeException('No temporary file could be created for the export.');
+        }
+
+        try {
+            $package = $client->exportInvoices(InvoiceSubjectType::Buyer, InvoiceDateType::PermanentStorage, $from, $to, $path);
+            $documents = $package->invoiceCount > 0 ? $this->documents($path) : [];
+        } finally {
+            @unlink($path);
+        }
+
+        // Everything up to the high-water mark is known to be stored; with no invoices at all, stop a little before now,
+        // because an invoice accepted this very moment may not be storable yet (a repeat is harmless: it is stored once).
+        $until = $package->isTruncated
+            ? ($package->continueFrom ?? $from)
+            : ($package->permanentStorageHwmDate ?? max($from, $to->modify('-10 minutes')));
+
+        return new PurchaseBatch($documents, $until, $package->isTruncated ? $package->continueFrom : null);
+    }
+
+    /**
+     * The invoices in an export ZIP: `{ksefNumber}.xml` entries. Read from the archive, never extracted to disk, and
+     * only the entries that look like what KSeF sends.
+     *
+     * @return list<PurchaseDocument>
+     */
+    private function documents(string $path): array
+    {
+        $zip = new ZipArchive;
+        if ($zip->open($path) !== true) {
+            throw new RuntimeException('The export from KSeF could not be opened.');
+        }
+
+        $documents = [];
+        try {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = (string) $zip->getNameIndex($i);
+                $stat = $zip->statIndex($i);
+                if (preg_match('/^([0-9A-Za-z-]{35})\.xml$/', $name, $m) !== 1 || $stat === false || $stat['size'] > 3_000_000) {
+                    continue;
+                }
+                $xml = $zip->getFromIndex($i);
+                if ($xml !== false) {
+                    $documents[] = new PurchaseDocument($m[1], $xml);
+                }
+            }
+        } finally {
+            $zip->close();
+        }
+
+        return $documents;
     }
 }
